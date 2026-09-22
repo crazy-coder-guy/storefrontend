@@ -108,6 +108,7 @@ export function CustomersPage() {
       <Drawer
         open={Boolean(selectedCustomer)}
         onClose={() => setSelectedCustomer(null)}
+        widthClassName="sm:max-w-md lg:max-w-lg"
         title={selectedCustomer ? selectedCustomer.name : 'Customer Profile'}
       >
         {selectedCustomer && (

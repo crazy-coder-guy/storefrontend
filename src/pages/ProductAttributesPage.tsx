@@ -298,7 +298,7 @@ export function ProductAttributesPage() {
       )}
 
       {/* Category Drawer Sheet */}
-      <Drawer open={catFormOpen} onClose={() => setCatFormOpen(false)} title={editingCat ? 'Edit Category' : 'New Category'}>
+      <Drawer open={catFormOpen} onClose={() => setCatFormOpen(false)} title={editingCat ? 'Edit Category' : 'New Category'} widthClassName="sm:max-w-md lg:max-w-lg">
         <CategoryForm
           initialValues={editingCat ?? undefined}
           onSubmit={handleCatSubmit}
@@ -308,7 +308,7 @@ export function ProductAttributesPage() {
       </Drawer>
 
       {/* Size Drawer Sheet */}
-      <Drawer open={sizeFormOpen} onClose={() => setSizeFormOpen(false)} title={editingSize ? 'Edit Size' : 'New Size'}>
+      <Drawer open={sizeFormOpen} onClose={() => setSizeFormOpen(false)} title={editingSize ? 'Edit Size' : 'New Size'} widthClassName="sm:max-w-md lg:max-w-lg">
         <SizeForm
           initialValues={editingSize ?? undefined}
           onSubmit={handleSizeSubmit}
@@ -318,7 +318,7 @@ export function ProductAttributesPage() {
       </Drawer>
 
       {/* Color Drawer Sheet */}
-      <Drawer open={colorFormOpen} onClose={() => setColorFormOpen(false)} title={editingColor ? 'Edit Color' : 'New Color'}>
+      <Drawer open={colorFormOpen} onClose={() => setColorFormOpen(false)} title={editingColor ? 'Edit Color' : 'New Color'} widthClassName="sm:max-w-md lg:max-w-lg">
         <ColorForm
           initialValues={editingColor ?? undefined}
           onSubmit={handleColorSubmit}

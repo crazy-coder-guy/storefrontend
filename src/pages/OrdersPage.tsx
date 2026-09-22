@@ -153,6 +153,7 @@ export function OrdersPage() {
       <Drawer
         open={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
+        widthClassName="sm:max-w-md lg:max-w-lg"
         title={
           selectedOrder ? (
             <div className="flex items-center gap-2.5">

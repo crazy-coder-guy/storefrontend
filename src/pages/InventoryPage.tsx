@@ -102,7 +102,7 @@ export function InventoryPage() {
 
       {data && <Pagination meta={data.meta} onPageChange={setPage} />}
 
-      <Drawer open={!!adjusting} onClose={() => setAdjusting(null)} title="Adjust Stock">
+      <Drawer open={!!adjusting} onClose={() => setAdjusting(null)} title="Adjust Stock" widthClassName="sm:max-w-md lg:max-w-lg">
         {adjusting && (
           <StockAdjustForm
             currentStock={adjusting.stockQuantity}
