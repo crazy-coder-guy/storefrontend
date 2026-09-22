@@ -36,14 +36,23 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'flex h-full flex-col justify-between overflow-y-auto border-r border-black/10 bg-white dark:border-white/10 dark:bg-black',
+        'flex h-full flex-col justify-between overflow-y-auto overflow-x-hidden border-r border-black/10 bg-white dark:border-white/10 dark:bg-black transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] shrink-0',
         collapsed ? 'w-18' : 'w-64'
       )}
     >
       <div>
-        <div className="flex items-center gap-2 px-6 py-6">
-          <HugeiconsIcon icon={Store01Icon} size={22} strokeWidth={1.8} />
-          {!collapsed && <span className="text-lg font-bold tracking-tight">Store Admin</span>}
+        <div className="flex items-center gap-3 px-5 py-5 overflow-hidden">
+          <div className="flex shrink-0 items-center justify-center">
+            <HugeiconsIcon icon={Store01Icon} size={22} strokeWidth={1.8} />
+          </div>
+          <span
+            className={cn(
+              'text-lg font-bold tracking-tight whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] origin-left',
+              collapsed ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none scale-95' : 'opacity-100 max-w-[200px] scale-100'
+            )}
+          >
+            Store Admin
+          </span>
         </div>
 
         <nav className="flex flex-col gap-1 px-3">
@@ -55,15 +64,24 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
               title={collapsed ? label : undefined}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-200 overflow-hidden',
                   isActive
-                    ? 'bg-black text-white dark:bg-white dark:text-black'
+                    ? 'bg-black text-white dark:bg-white dark:text-black font-medium'
                     : 'text-black/70 hover:bg-black/5 dark:text-white/70 dark:hover:bg-white/10'
                 )
               }
             >
-              <HugeiconsIcon icon={icon} size={20} strokeWidth={1.8} />
-              {!collapsed && label}
+              <div className="flex shrink-0 items-center justify-center">
+                <HugeiconsIcon icon={icon} size={20} strokeWidth={1.8} />
+              </div>
+              <span
+                className={cn(
+                  'whitespace-nowrap transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] origin-left',
+                  collapsed ? 'opacity-0 max-w-0 overflow-hidden pointer-events-none scale-95' : 'opacity-100 max-w-[160px] scale-100'
+                )}
+              >
+                {label}
+              </span>
             </NavLink>
           ))}
         </nav>

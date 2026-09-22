@@ -44,6 +44,7 @@ export function InventoryTable({
         {
           header: 'Product',
           key: 'product',
+          className: 'min-w-[180px]',
           render: (row) => (
             <Link
               to={`/products?selectedProduct=${row.productId}`}
@@ -53,23 +54,25 @@ export function InventoryTable({
             </Link>
           ),
         },
-        { header: 'SKU', key: 'sku', render: (row) => row.sku },
+        { header: 'SKU', key: 'sku', className: 'min-w-[120px]', render: (row) => row.sku },
         {
           header: 'Color',
           key: 'color',
+          className: 'min-w-[120px]',
           render: (row) => <ColorSwatch hexCode={row.color?.hexCode} name={row.color?.name} />,
         },
-        { header: 'Size', key: 'size', render: (row) => row.size?.code ?? '—' },
-        { header: 'Stock', key: 'stock', render: (row) => row.stockQuantity },
+        { header: 'Size', key: 'size', className: 'min-w-[90px]', render: (row) => row.size?.code ?? '—' },
+        { header: 'Stock', key: 'stock', className: 'min-w-[90px]', render: (row) => row.stockQuantity },
         {
           header: 'Status',
           key: 'status',
+          className: 'min-w-[120px]',
           render: (row) => <StockBadge status={stockStatus(row.stockQuantity, threshold)} />,
         },
         {
           header: 'Actions',
           key: 'actions',
-          className: 'text-right',
+          className: 'min-w-[160px] text-right',
           render: (row) => (
             <div className="flex items-center justify-end gap-1.5">
               <button

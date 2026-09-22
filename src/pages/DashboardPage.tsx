@@ -3,7 +3,6 @@ import { Skeleton } from '../components/Skeleton'
 import { ErrorState } from '../components/ErrorState'
 import { StatCards } from '../features/dashboard/StatCards'
 import { LowStockTable } from '../features/dashboard/LowStockTable'
-import { RecentActivityTable } from '../features/dashboard/RecentActivityTable'
 import { useDashboardSummary } from '../features/dashboard/hooks/useDashboardSummary'
 
 export function DashboardPage() {
@@ -32,13 +31,6 @@ export function DashboardPage() {
               Low Stock Variants
             </h2>
             <LowStockTable items={data.lowStockProducts} />
-          </section>
-
-          <section>
-            <h2 className="mb-3 text-sm font-semibold text-black/70 dark:text-white/70">
-              Recent Inventory Activity
-            </h2>
-            <RecentActivityTable items={data.recentActivity} />
           </section>
         </div>
       )}

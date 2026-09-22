@@ -10,6 +10,7 @@ import {
 import { Sidebar } from '../components/Sidebar'
 import { useTheme } from '../context/ThemeContext'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { cn } from '../utils/cn'
 
 const ROUTE_TITLES: Array<{ test: RegExp; title: string }> = [
   { test: /^\/dashboard/, title: 'Dashboard' },
@@ -53,14 +54,25 @@ export function AdminLayout() {
       {isDesktop ? (
         <Sidebar collapsed={collapsed} />
       ) : (
-        mobileOpen && (
-          <div className="fixed inset-0 z-40 flex">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-            <div className="relative z-10">
-              <Sidebar onNavigate={() => setMobileOpen(false)} />
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 z-40 flex transition-opacity duration-300 ease-in-out',
+            mobileOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
+          )}
+        >
+          <div
+            className="absolute inset-0 bg-black/40 transition-opacity duration-300"
+            onClick={() => setMobileOpen(false)}
+          />
+          <div
+            className={cn(
+              'relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] transform',
+              mobileOpen ? 'translate-x-0' : '-translate-x-full'
+            )}
+          >
+            <Sidebar onNavigate={() => setMobileOpen(false)} />
           </div>
-        )
+        </div>
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -88,10 +100,12 @@ export function AdminLayout() {
 
           <button
             onClick={toggleTheme}
-            className="rounded-lg p-2 text-black/70 hover:bg-black/5 dark:text-white/70 dark:hover:bg-white/10"
+            className="rounded-lg p-2 text-black/70 hover:bg-black/5 dark:text-white/70 dark:hover:bg-white/10 transition-transform duration-200 active:scale-90"
             aria-label="Toggle theme"
           >
-            <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} size={20} />
+            <div className="transition-transform duration-300 hover:rotate-45">
+              <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} size={20} />
+            </div>
           </button>
         </header>
 

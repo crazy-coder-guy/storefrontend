@@ -50,8 +50,8 @@ export function InventoryPage() {
     <div>
       <PageHeader title="Inventory" description="Track and adjust stock across all product variants." />
 
-      <div className="mb-4 flex flex-wrap gap-3">
-        <div className="w-full max-w-xs">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="w-full sm:w-72">
           <Input
             placeholder="Search by SKU or product name…"
             value={search}
@@ -61,7 +61,7 @@ export function InventoryPage() {
             }}
           />
         </div>
-        <div className="w-48">
+        <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
           <Select
             value={stockStatus}
             onChange={(e) => {
@@ -75,7 +75,7 @@ export function InventoryPage() {
             <option value="out_of_stock">Out of stock</option>
           </Select>
         </div>
-        <div className="w-48">
+        <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
           <Select
             value={stockSort}
             onChange={(e) => {

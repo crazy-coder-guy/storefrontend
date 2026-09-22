@@ -23,15 +23,15 @@ export function ProductFilters({
   const { data: categoriesData } = useAllCategories()
 
   return (
-    <div className="mb-4 flex flex-wrap gap-3">
-      <div className="w-full max-w-xs">
+    <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="w-full sm:w-72">
         <Input
           placeholder="Search by name, SKU, type, or price…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
         />
       </div>
-      <div className="w-48">
+      <div className="flex-1 min-w-[140px] sm:w-48 sm:flex-none">
         <Select value={categoryId} onChange={(e) => onCategoryChange(e.target.value)}>
           <option value="">All categories</option>
           {categoriesData?.items.map((category) => (
@@ -41,7 +41,7 @@ export function ProductFilters({
           ))}
         </Select>
       </div>
-      <div className="w-40">
+      <div className="flex-1 min-w-[140px] sm:w-40 sm:flex-none">
         <Select value={status} onChange={(e) => onStatusChange(e.target.value as ProductStatus | '')}>
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>

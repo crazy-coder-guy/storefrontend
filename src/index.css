@@ -69,3 +69,18 @@ body {
 .animate-grow-width {
   animation: growWidth 1s cubic-bezier(0.25, 1, 0.5, 1) both;
 }
+
+/* Smooth dark/light theme transitions */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.35s ease-in-out, border-color 0.35s ease-in-out, color 0.35s ease-in-out, fill 0.35s ease-in-out, stroke 0.35s ease-in-out !important;
+  transition-delay: 0s !important;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
