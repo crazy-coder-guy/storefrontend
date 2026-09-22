@@ -2,13 +2,12 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import type { IconSvgElement } from '@hugeicons/react'
 import {
   ChartHistogramIcon,
-  CheckmarkSquare01Icon,
   ColorsIcon,
   PackageIcon,
-  Settings01Icon,
   Store01Icon,
   TShirtIcon,
-  TapeMeasureIcon,
+  ShoppingBag01Icon,
+  UserGroupIcon,
 } from '@hugeicons/core-free-icons'
 import { NavLink } from 'react-router-dom'
 import { cn } from '../utils/cn'
@@ -22,11 +21,10 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', to: '/dashboard', icon: ChartHistogramIcon },
   { label: 'Products', to: '/products', icon: TShirtIcon },
-  { label: 'Categories', to: '/categories', icon: CheckmarkSquare01Icon },
+  { label: 'Orders', to: '/orders', icon: ShoppingBag01Icon },
+  { label: 'Customers', to: '/customers', icon: UserGroupIcon },
+  { label: 'Attributes', to: '/attributes', icon: ColorsIcon },
   { label: 'Inventory', to: '/inventory', icon: PackageIcon },
-  { label: 'Sizes', to: '/sizes', icon: TapeMeasureIcon },
-  { label: 'Colors', to: '/colors', icon: ColorsIcon },
-  { label: 'Settings', to: '/settings', icon: Settings01Icon },
 ]
 
 interface SidebarProps {
@@ -38,7 +36,7 @@ export function Sidebar({ collapsed = false, onNavigate }: SidebarProps) {
   return (
     <aside
       className={cn(
-        'flex h-full flex-col justify-between border-r border-black/10 bg-white dark:border-white/10 dark:bg-black',
+        'flex h-full flex-col justify-between overflow-y-auto border-r border-black/10 bg-white dark:border-white/10 dark:bg-black',
         collapsed ? 'w-18' : 'w-64'
       )}
     >

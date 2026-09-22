@@ -27,6 +27,7 @@ export interface Category {
   status: EntityStatus
   createdAt: string
   updatedAt: string
+  productCount?: number
 }
 
 export interface CategoryInput {
@@ -70,6 +71,9 @@ export interface ColorInput {
   status?: EntityStatus
 }
 
+export type ProductFit = 'REGULAR' | 'SLIM' | 'OVERSIZED' | 'RELAXED'
+export type NeckType = 'CREW' | 'V_NECK' | 'POLO' | 'ROUND' | 'MOCK'
+
 export interface Product {
   id: string
   name: string
@@ -80,8 +84,16 @@ export interface Product {
   basePrice: number
   mrp: number
   status: ProductStatus
+  gsm: number | null
+  fabric: string | null
+  fit: ProductFit | null
+  neckType: NeckType | null
+  biowash: boolean
   createdAt: string
   updatedAt: string
+  images?: ProductImage[]
+  sizes?: Size[]
+  category?: Category
 }
 
 export interface ProductInput {
@@ -93,6 +105,11 @@ export interface ProductInput {
   basePrice: number
   mrp: number
   status?: ProductStatus
+  gsm?: number | null
+  fabric?: string | null
+  fit?: ProductFit | null
+  neckType?: NeckType | null
+  biowash?: boolean
 }
 
 export type ImageType = 'PRODUCT' | 'MODEL' | 'LIFESTYLE'
@@ -178,12 +195,50 @@ export interface DashboardSummary {
 }
 
 export interface AdminSettings {
-  storeName: string
-  storeEmail: string
-  storePhone: string
-  storeAddress: string
-  currency: string
   lowStockThreshold: number
 }
 
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock'
+
+export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+export type PaymentStatus = 'PAID' | 'UNPAID' | 'REFUNDED'
+
+export interface OrderItem {
+  id: string
+  productImageUrl: string | null
+  productName: string
+  colorName: string
+  colorHex: string
+  sizeName: string
+  sizeCode: string
+  quantity: number
+  unitPrice: number
+}
+
+export interface Order {
+  id: string
+  orderNumber: string
+  customerName: string
+  customerEmail: string
+  customerPhone: string
+  status: OrderStatus
+  paymentStatus: PaymentStatus
+  totalAmount: number
+  itemsCount: number
+  items: OrderItem[]
+  shippingAddress: string
+  createdAt: string
+}
+
+export interface Customer {
+  id: string
+  name: string
+  email: string
+  phone: string
+  ordersCount: number
+  totalSpent: number
+  status: EntityStatus
+  lastOrderAt: string
+  createdAt: string
+}
+

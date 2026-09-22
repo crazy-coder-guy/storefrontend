@@ -24,3 +24,48 @@ body {
   margin: 0;
   @apply bg-white text-black dark:bg-black dark:text-white;
 }
+
+/* Hide scrollbars site-wide while keeping scrolling fully functional */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and legacy Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, modern Edge */
+}
+
+/* Custom chart grow animations */
+@keyframes growBar {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-grow-bar {
+  transform-origin: bottom;
+  animation: growBar 0.9s cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+@keyframes growWidth {
+  0% {
+    width: 0%;
+    opacity: 0;
+  }
+  100% {
+    width: var(--target-width);
+    opacity: 1;
+  }
+}
+
+.animate-grow-width {
+  animation: growWidth 1s cubic-bezier(0.25, 1, 0.5, 1) both;
+}

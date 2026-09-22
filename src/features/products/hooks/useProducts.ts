@@ -61,3 +61,16 @@ export function useDeleteProduct() {
   })
 }
 
+export function useDeleteProductPermanently() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => productService.deleteProductPermanently(id),
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: listKey })
+      queryClient.invalidateQueries({ queryKey: detailKey(id) })
+      toast.success('Product permanently deleted')
+    },
+    onError: (error) => toast.fromError(error),
+  })
+}
+

@@ -32,3 +32,7 @@ export async function deleteCategory(id: string) {
   const { data } = await api.delete<Category>(`/categories/${id}`)
   return data
 }
+
+export async function deleteCategoryPermanently(id: string) {
+  await api.delete(`/categories/${id}/permanent`)
+}

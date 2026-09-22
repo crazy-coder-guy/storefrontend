@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as imageService from '../../../services/productImage.service'
+import type { UploadProductImageInput } from '../../../services/productImage.service'
 import type { ProductImageInput } from '../../../types'
 import { toast } from '../../../lib/toast'
 
@@ -13,13 +14,13 @@ export function useProductImages(productId: string) {
   })
 }
 
-export function useCreateProductImage(productId: string) {
+export function useUploadProductImage(productId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: ProductImageInput) => imageService.createProductImage(productId, input),
+    mutationFn: (input: UploadProductImageInput) => imageService.uploadProductImage(productId, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: key(productId) })
-      toast.success('Image added')
+      toast.success('Image uploaded')
     },
     onError: (error) => toast.fromError(error),
   })

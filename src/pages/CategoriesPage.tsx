@@ -13,9 +13,11 @@ import {
   useCategories,
   useCreateCategory,
   useDeleteCategory,
+  useDeleteCategoryPermanently,
   useUpdateCategory,
 } from '../features/categories/hooks/useCategories'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import type { Category } from '../types'
 
 export function CategoriesPage() {
@@ -26,16 +28,18 @@ export function CategoriesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<Category | null>(null)
   const [deleting, setDeleting] = useState<Category | null>(null)
+  const [deletingPermanently, setDeletingPermanently] = useState<Category | null>(null)
 
   const { data, isLoading, isError, error, refetch } = useCategories({
     search: debouncedSearch || undefined,
     page,
-    limit: 10,
+    limit: DEFAULT_PAGE_SIZE,
   })
 
   const createMutation = useCreateCategory()
   const updateMutation = useUpdateCategory()
   const deleteMutation = useDeleteCategory()
+  const deletePermanentlyMutation = useDeleteCategoryPermanently()
 
   function openCreate() {
     setEditing(null)
@@ -96,6 +100,7 @@ export function CategoriesPage() {
         onRetry={() => refetch()}
         onEdit={openEdit}
         onDelete={setDeleting}
+        onDeletePermanently={setDeletingPermanently}
       />
 
       {data && <Pagination meta={data.meta} onPageChange={setPage} />}
@@ -122,6 +127,21 @@ export function CategoriesPage() {
         onCancel={() => setDeleting(null)}
         onConfirm={() => {
           if (deleting) deleteMutation.mutate(deleting.id, { onSuccess: () => setDeleting(null) })
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!deletingPermanently}
+        title="Delete category permanently"
+        description="This cannot be undone. The category will be permanently removed."
+        confirmLabel="Delete permanently"
+        isLoading={deletePermanentlyMutation.isPending}
+        onCancel={() => setDeletingPermanently(null)}
+        onConfirm={() => {
+          if (deletingPermanently)
+            deletePermanentlyMutation.mutate(deletingPermanently.id, {
+              onSuccess: () => setDeletingPermanently(null),
+            })
         }}
       />
     </div>

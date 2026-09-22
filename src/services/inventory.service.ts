@@ -1,12 +1,17 @@
 import { api } from './api'
 import type { InventoryItem, InventoryTransaction, PaginatedResponse, StockAdjustInput } from '../types'
 
+export type StockStatusFilter = 'in_stock' | 'low_stock' | 'out_of_stock'
+
 export interface ListInventoryParams {
-  sku?: string
+  search?: string
   product_id?: string
-  product_name?: string
   size_id?: string
   color_id?: string
+  stock_status?: StockStatusFilter
+  threshold?: number
+  sortBy?: 'stockQuantity'
+  sortOrder?: 'asc' | 'desc'
   page?: number
   limit?: number
 }

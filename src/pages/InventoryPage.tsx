@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { Input } from '../components/Input'
-import { Modal } from '../components/Modal'
+import { Select } from '../components/Select'
+import { Drawer } from '../components/Drawer'
 import { Pagination } from '../components/Pagination'
 import { InventoryTable } from '../features/inventory/InventoryTable'
 import { StockAdjustForm, type StockAdjustFormValues } from '../features/inventory/StockAdjustForm'
@@ -9,25 +10,30 @@ import { useAdjustStock, useInventory } from '../features/inventory/hooks/useInv
 import { useSettings } from '../features/settings/hooks/useSettings'
 import { DEFAULT_SETTINGS } from '../services/settings.service'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
+import { DEFAULT_PAGE_SIZE } from '../utils/constants'
+import type { StockStatusFilter } from '../services/inventory.service'
 import type { InventoryItem } from '../types'
 
 export function InventoryPage() {
-  const [sku, setSku] = useState('')
-  const [productName, setProductName] = useState('')
+  const [search, setSearch] = useState('')
+  const [stockStatus, setStockStatus] = useState<StockStatusFilter | ''>('')
+  const [stockSort, setStockSort] = useState<'' | 'asc' | 'desc'>('')
   const [page, setPage] = useState(1)
   const [adjusting, setAdjusting] = useState<InventoryItem | null>(null)
 
-  const debouncedSku = useDebouncedValue(sku)
-  const debouncedProductName = useDebouncedValue(productName)
+  const debouncedSearch = useDebouncedValue(search)
 
   const { data: settings } = useSettings()
   const threshold = settings?.lowStockThreshold ?? DEFAULT_SETTINGS.lowStockThreshold
 
   const { data, isLoading, isError, error, refetch } = useInventory({
-    sku: debouncedSku || undefined,
-    product_name: debouncedProductName || undefined,
+    search: debouncedSearch || undefined,
+    stock_status: stockStatus || undefined,
+    threshold,
+    sortBy: stockSort ? 'stockQuantity' : undefined,
+    sortOrder: stockSort || undefined,
     page,
-    limit: 10,
+    limit: DEFAULT_PAGE_SIZE,
   })
 
   const adjustMutation = useAdjustStock()
@@ -45,25 +51,42 @@ export function InventoryPage() {
       <PageHeader title="Inventory" description="Track and adjust stock across all product variants." />
 
       <div className="mb-4 flex flex-wrap gap-3">
-        <div className="w-56">
+        <div className="w-full max-w-xs">
           <Input
-            placeholder="Search by SKU…"
-            value={sku}
+            placeholder="Search by SKU or product name…"
+            value={search}
             onChange={(e) => {
-              setSku(e.target.value)
+              setSearch(e.target.value)
               setPage(1)
             }}
           />
         </div>
-        <div className="w-56">
-          <Input
-            placeholder="Search by product name…"
-            value={productName}
+        <div className="w-48">
+          <Select
+            value={stockStatus}
             onChange={(e) => {
-              setProductName(e.target.value)
+              setStockStatus(e.target.value as StockStatusFilter | '')
               setPage(1)
             }}
-          />
+          >
+            <option value="">All stock statuses</option>
+            <option value="in_stock">In stock</option>
+            <option value="low_stock">Low stock</option>
+            <option value="out_of_stock">Out of stock</option>
+          </Select>
+        </div>
+        <div className="w-48">
+          <Select
+            value={stockSort}
+            onChange={(e) => {
+              setStockSort(e.target.value as '' | 'asc' | 'desc')
+              setPage(1)
+            }}
+          >
+            <option value="">Sort: default</option>
+            <option value="asc">Stock: Low to High</option>
+            <option value="desc">Stock: High to Low</option>
+          </Select>
         </div>
       </div>
 
@@ -79,7 +102,7 @@ export function InventoryPage() {
 
       {data && <Pagination meta={data.meta} onPageChange={setPage} />}
 
-      <Modal open={!!adjusting} onClose={() => setAdjusting(null)} title="Adjust Stock">
+      <Drawer open={!!adjusting} onClose={() => setAdjusting(null)} title="Adjust Stock">
         {adjusting && (
           <StockAdjustForm
             currentStock={adjusting.stockQuantity}
@@ -88,7 +111,8 @@ export function InventoryPage() {
             onCancel={() => setAdjusting(null)}
           />
         )}
-      </Modal>
+      </Drawer>
     </div>
   )
 }
+

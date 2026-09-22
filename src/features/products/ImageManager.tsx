@@ -1,34 +1,63 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Add01Icon, Delete02Icon, StarIcon } from '@hugeicons/core-free-icons'
-import { Input } from '../../components/Input'
+import { Delete02Icon, StarIcon, Upload01Icon, EyeIcon } from '@hugeicons/core-free-icons'
 import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
 import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EmptyState } from '../../components/EmptyState'
+import { Modal } from '../../components/Modal'
 import {
-  useCreateProductImage,
   useDeleteProductImage,
   useProductImages,
   useUpdateProductImage,
+  useUploadProductImage,
 } from './hooks/useProductImages'
 import type { ImageType, ProductImage } from '../../types'
 
 export function ImageManager({ productId }: { productId: string }) {
   const { data: images, isLoading } = useProductImages(productId)
-  const createMutation = useCreateProductImage(productId)
+  const uploadMutation = useUploadProductImage(productId)
   const updateMutation = useUpdateProductImage(productId)
   const deleteMutation = useDeleteProductImage(productId)
 
-  const [url, setUrl] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageType, setImageType] = useState<ImageType>('PRODUCT')
   const [deleting, setDeleting] = useState<ProductImage | null>(null)
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState<ProductImage | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  function handleAdd() {
-    if (!url.trim()) return
-    createMutation.mutate(
-      { imageUrl: url.trim(), imageType },
-      { onSuccess: () => setUrl('') }
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
+
+  function handleFileSelected(selected: File | null) {
+    if (!selected) return
+    setFile(selected)
+    setPreviewUrl(URL.createObjectURL(selected))
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setIsDragging(false)
+    const droppedFile = e.dataTransfer.files?.[0] ?? null
+    handleFileSelected(droppedFile)
+  }
+
+  function handleUpload() {
+    if (!file) return
+    uploadMutation.mutate(
+      { file, imageType },
+      {
+        onSuccess: () => {
+          setFile(null)
+          setPreviewUrl(null)
+          if (fileInputRef.current) fileInputRef.current.value = ''
+        },
+      }
     )
   }
 
@@ -37,88 +66,193 @@ export function ImageManager({ productId }: { productId: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-56 flex-1">
-          <Input
-            label="Image URL"
-            placeholder="https://example.com/image.jpg"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-          />
-        </div>
-        <div className="w-40">
-          <Select label="Type" value={imageType} onChange={(e) => setImageType(e.target.value as ImageType)}>
-            <option value="PRODUCT">Product</option>
-            <option value="MODEL">Model</option>
-            <option value="LIFESTYLE">Lifestyle</option>
-          </Select>
-        </div>
-        <Button onClick={handleAdd} disabled={!url.trim() || createMutation.isPending}>
-          <HugeiconsIcon icon={Add01Icon} size={16} />
-          Add Image
-        </Button>
+    <div className="flex flex-col gap-6">
+      {/* Sleek Upload Zone */}
+      <div
+        onDragOver={(e) => {
+          e.preventDefault()
+          setIsDragging(true)
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        onDrop={handleDrop}
+        className={`relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-all ${
+          isDragging
+            ? 'border-black bg-black/5 dark:border-white dark:bg-white/10'
+            : 'border-black/15 bg-gray-50/60 hover:border-black/30 dark:border-white/15 dark:bg-white/5 dark:hover:border-white/30'
+        }`}
+      >
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
+        />
+
+        {previewUrl ? (
+          <div className="flex w-full flex-col items-center gap-3">
+            <div className="relative h-28 w-28 overflow-hidden rounded-xl border border-black/10 shadow-sm dark:border-white/10">
+              <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+            </div>
+            <p className="max-w-xs truncate text-xs font-semibold text-black dark:text-white">{file?.name}</p>
+            <div className="flex items-center gap-3">
+              <div className="w-36">
+                <Select value={imageType} onChange={(e) => setImageType(e.target.value as ImageType)}>
+                  <option value="PRODUCT">Product</option>
+                  <option value="MODEL">Model</option>
+                  <option value="LIFESTYLE">Lifestyle</option>
+                </Select>
+              </div>
+              <Button onClick={handleUpload} disabled={uploadMutation.isPending} className="px-4 py-2 text-xs font-semibold">
+                <HugeiconsIcon icon={Upload01Icon} size={15} />
+                {uploadMutation.isPending ? 'Uploading…' : 'Upload Image'}
+              </Button>
+              <button
+                onClick={() => {
+                  setFile(null)
+                  setPreviewUrl(null)
+                }}
+                className="text-xs text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 text-black dark:bg-white/10 dark:text-white">
+              <HugeiconsIcon icon={Upload01Icon} size={20} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-black dark:text-white">
+                Drag and drop your image here, or{' '}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="underline underline-offset-2 hover:text-black/70 dark:hover:text-white/70"
+                >
+                  browse
+                </button>
+              </p>
+              <p className="mt-0.5 text-[11px] text-black/40 dark:text-white/40">PNG, JPG, WEBP up to 10MB</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      {url.trim() && (
-        <div className="h-32 w-32 overflow-hidden rounded-lg border border-black/10 dark:border-white/10">
-          <img
-            src={url}
-            alt="Preview"
-            className="h-full w-full object-cover"
-            onError={(e) => (e.currentTarget.style.opacity = '0.2')}
-          />
-        </div>
-      )}
-
-      {isLoading && <p className="text-sm text-black/50 dark:text-white/50">Loading images…</p>}
+      {isLoading && <p className="text-xs text-black/50 dark:text-white/50">Loading gallery images…</p>}
 
       {!isLoading && (!images || images.length === 0) && (
-        <EmptyState title="No images yet" description="Paste an image URL above to add one." />
+        <EmptyState title="No gallery images" description="Upload product, model, or lifestyle images to display here." />
       )}
 
+      {/* Grid Gallery Cards */}
       {!isLoading && images && images.length > 0 && (
-        <div className="flex flex-wrap gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
           {images.map((image) => (
             <div
               key={image.id}
-              className="relative w-36 overflow-hidden rounded-lg border border-black/10 dark:border-white/10"
+              className={`group relative flex flex-col overflow-hidden rounded-xl border bg-white transition-all dark:bg-black ${
+                image.isPrimary
+                  ? 'border-black ring-2 ring-black/10 dark:border-white dark:ring-white/20'
+                  : 'border-black/10 hover:border-black/30 dark:border-white/10 dark:hover:border-white/30'
+              }`}
             >
-              <img src={image.imageUrl} alt={image.imageType} className="h-36 w-36 object-cover" />
-              <div className="flex items-center justify-between gap-1 p-1.5">
-                <span className="truncate text-xs text-black/50 dark:text-white/50">{image.imageType}</span>
+              {/* Aspect Square Thumbnail Container */}
+              <div className="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-900">
+                <img
+                  src={image.imageUrl}
+                  alt={image.imageType}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+
+                {/* Primary Badge Pill */}
+                {image.isPrimary ? (
+                  <span className="absolute left-2 top-2 rounded-md bg-black px-2 py-0.5 text-[10px] font-bold text-white shadow-xs dark:bg-white dark:text-black">
+                    Primary
+                  </span>
+                ) : (
+                  <span className="absolute left-2 top-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-medium uppercase text-white backdrop-blur-xs">
+                    {image.imageType}
+                  </span>
+                )}
+              </div>
+
+              {/* Explicit Action Controls Row */}
+              <div className="flex items-center justify-between border-t border-black/10 bg-gray-50/50 px-2.5 py-2 dark:border-white/10 dark:bg-white/5">
+                <button
+                  onClick={() => setSelectedPreviewImage(image)}
+                  className="flex items-center gap-1 text-[11px] font-medium text-black/70 hover:text-black dark:text-white/70 dark:hover:text-white"
+                  title="View Preview"
+                >
+                  <HugeiconsIcon icon={EyeIcon} size={14} />
+                  <span>View</span>
+                </button>
+
                 <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleMakePrimary(image)}
-                    className={`rounded p-1 ${image.isPrimary ? 'text-black dark:text-white' : 'text-black/40 dark:text-white/40'}`}
-                    aria-label="Set primary"
-                    title="Set as primary"
-                  >
-                    <HugeiconsIcon icon={StarIcon} size={14} />
-                  </button>
+                  {!image.isPrimary && (
+                    <button
+                      onClick={() => handleMakePrimary(image)}
+                      className="rounded p-1 text-black/50 hover:bg-black/10 hover:text-black dark:text-white/50 dark:hover:bg-white/10 dark:hover:text-white"
+                      title="Set as Primary Thumbnail"
+                    >
+                      <HugeiconsIcon icon={StarIcon} size={14} />
+                    </button>
+                  )}
                   <button
                     onClick={() => setDeleting(image)}
-                    className="rounded p-1 text-black/40 hover:text-red-500 dark:text-white/40"
-                    aria-label="Delete image"
+                    className="rounded p-1 text-black/40 hover:bg-rose-500/10 hover:text-rose-600 dark:text-white/40 dark:hover:bg-rose-500/20 dark:hover:text-rose-400"
+                    title="Delete Image"
                   >
                     <HugeiconsIcon icon={Delete02Icon} size={14} />
                   </button>
                 </div>
               </div>
-              {image.isPrimary && (
-                <span className="absolute left-1 top-1 rounded-full bg-black px-1.5 py-0.5 text-[10px] text-white dark:bg-white dark:text-black">
-                  Primary
-                </span>
-              )}
             </div>
           ))}
         </div>
       )}
 
+      {/* Fullscreen Preview Modal */}
+      <Modal
+        open={Boolean(selectedPreviewImage)}
+        onClose={() => setSelectedPreviewImage(null)}
+        title={selectedPreviewImage ? `Image Preview (${selectedPreviewImage.imageType})` : 'Image Preview'}
+      >
+        {selectedPreviewImage && (
+          <div className="flex flex-col items-center gap-4">
+            <div className="max-h-[70vh] overflow-hidden rounded-xl border border-black/10 bg-gray-100 dark:border-white/10 dark:bg-gray-900">
+              <img
+                src={selectedPreviewImage.imageUrl}
+                alt={selectedPreviewImage.imageType}
+                className="max-h-[70vh] w-auto object-contain"
+              />
+            </div>
+            <div className="flex w-full items-center justify-between text-xs">
+              <span className="rounded-md bg-black/5 px-2.5 py-1 font-semibold text-black dark:bg-white/10 dark:text-white">
+                Tag: {selectedPreviewImage.imageType}
+              </span>
+              {!selectedPreviewImage.isPrimary && (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    handleMakePrimary(selectedPreviewImage)
+                    setSelectedPreviewImage(null)
+                  }}
+                  className="px-3 py-1.5 text-xs"
+                >
+                  Set as Primary
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </Modal>
+
       <ConfirmDialog
         open={!!deleting}
         title="Delete image"
-        description="Delete this image? This cannot be undone."
+        description="Delete this image? This action cannot be undone."
         isLoading={deleteMutation.isPending}
         onCancel={() => setDeleting(null)}
         onConfirm={() => {
@@ -128,3 +262,5 @@ export function ImageManager({ productId }: { productId: string }) {
     </div>
   )
 }
+
+

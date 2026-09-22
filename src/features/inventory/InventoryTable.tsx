@@ -6,6 +6,7 @@ import { SkeletonRows } from '../../components/Skeleton'
 import { EmptyState } from '../../components/EmptyState'
 import { ErrorState } from '../../components/ErrorState'
 import { StockBadge } from '../../components/Badge'
+import { ColorSwatch } from '../../components/ColorSwatch'
 import { stockStatus } from '../../utils/stockStatus'
 import type { InventoryItem } from '../../types'
 
@@ -40,10 +41,25 @@ export function InventoryTable({
         <EmptyState title="No inventory found" description="Try adjusting your filters." />
       }
       columns={[
-        { header: 'Product', key: 'product', render: (row) => row.product.name },
+        {
+          header: 'Product',
+          key: 'product',
+          render: (row) => (
+            <Link
+              to={`/products?selectedProduct=${row.productId}`}
+              className="font-medium text-black hover:underline dark:text-white"
+            >
+              {row.product.name}
+            </Link>
+          ),
+        },
         { header: 'SKU', key: 'sku', render: (row) => row.sku },
-        { header: 'Color', key: 'color', render: (row) => row.color?.name ?? '—' },
-        { header: 'Size', key: 'size', render: (row) => row.size?.name ?? '—' },
+        {
+          header: 'Color',
+          key: 'color',
+          render: (row) => <ColorSwatch hexCode={row.color?.hexCode} name={row.color?.name} />,
+        },
+        { header: 'Size', key: 'size', render: (row) => row.size?.code ?? '—' },
         { header: 'Stock', key: 'stock', render: (row) => row.stockQuantity },
         {
           header: 'Status',
@@ -51,24 +67,25 @@ export function InventoryTable({
           render: (row) => <StockBadge status={stockStatus(row.stockQuantity, threshold)} />,
         },
         {
-          header: '',
+          header: 'Actions',
           key: 'actions',
           className: 'text-right',
           render: (row) => (
-            <div className="flex justify-end gap-1">
+            <div className="flex items-center justify-end gap-1.5">
               <button
+                type="button"
                 onClick={() => onAdjust(row)}
-                className="rounded-lg p-1.5 text-black/60 hover:bg-black/5 dark:text-white/60 dark:hover:bg-white/10"
-                aria-label="Adjust stock"
+                className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs font-medium text-black/80 hover:bg-black/5 hover:text-black shadow-2xs cursor-pointer dark:border-white/10 dark:bg-black dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
                 title="Adjust stock"
               >
-                <HugeiconsIcon icon={Edit02Icon} size={16} />
+                <HugeiconsIcon icon={Edit02Icon} size={14} />
+                <span>Adjust</span>
               </button>
               <Link
                 to={`/inventory/${row.id}/history`}
-                className="rounded-lg px-2 py-1 text-xs text-black/60 hover:bg-black/5 dark:text-white/60 dark:hover:bg-white/10"
+                className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2.5 py-1 text-xs font-medium text-black/80 hover:bg-black/5 hover:text-black shadow-2xs dark:border-white/10 dark:bg-black dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
               >
-                History
+                <span>History</span>
               </Link>
             </div>
           ),

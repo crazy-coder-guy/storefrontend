@@ -38,6 +38,7 @@ export function VariantForm({ initialValues, onSubmit, isSubmitting, onCancel }:
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<z.input<typeof schema>, unknown, z.output<typeof schema>>({
     resolver: zodResolver(schema),
@@ -51,22 +52,42 @@ export function VariantForm({ initialValues, onSubmit, isSubmitting, onCancel }:
     },
   })
 
+  const selectedColor = colorsData?.items.find((color) => color.id === watch('colorId'))
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-4">
-        <Select label="Color" {...register('colorId')} error={errors.colorId?.message}>
-          <option value="">{colorsLoading ? 'Loading…' : 'Select a color'}</option>
-          {colorsData?.items.map((color) => (
-            <option key={color.id} value={color.id}>
-              {color.name}
-            </option>
-          ))}
-        </Select>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="colorId" className="text-sm font-medium text-black/80 dark:text-white/80">
+            Color
+          </label>
+          <div className="relative">
+            <Select
+              id="colorId"
+              {...register('colorId')}
+              error={errors.colorId?.message}
+              className={selectedColor ? 'pl-8' : undefined}
+            >
+              <option value="">{colorsLoading ? 'Loading…' : 'Select a color'}</option>
+              {colorsData?.items.map((color) => (
+                <option key={color.id} value={color.id}>
+                  {color.name}
+                </option>
+              ))}
+            </Select>
+            {selectedColor && (
+              <span
+                className="pointer-events-none absolute left-2.5 top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-black/15 dark:border-white/20"
+                style={{ backgroundColor: selectedColor.hexCode }}
+              />
+            )}
+          </div>
+        </div>
         <Select label="Size" {...register('sizeId')} error={errors.sizeId?.message}>
           <option value="">{sizesLoading ? 'Loading…' : 'Select a size'}</option>
           {sizesData?.items.map((size) => (
             <option key={size.id} value={size.id}>
-              {size.name}
+              {size.code}
             </option>
           ))}
         </Select>

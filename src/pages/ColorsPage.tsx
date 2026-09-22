@@ -9,6 +9,7 @@ import { Pagination } from '../components/Pagination'
 import { ColorTable } from '../features/colors/ColorTable'
 import { ColorForm, type ColorFormValues } from '../features/colors/ColorForm'
 import { useColors, useCreateColor, useDeleteColor, useUpdateColor } from '../features/colors/hooks/useColors'
+import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import type { Color } from '../types'
 
 export function ColorsPage() {
@@ -17,7 +18,7 @@ export function ColorsPage() {
   const [editing, setEditing] = useState<Color | null>(null)
   const [deleting, setDeleting] = useState<Color | null>(null)
 
-  const { data, isLoading, isError, error, refetch } = useColors({ page, limit: 10 })
+  const { data, isLoading, isError, error, refetch } = useColors({ page, limit: DEFAULT_PAGE_SIZE })
   const createMutation = useCreateColor()
   const updateMutation = useUpdateColor()
   const deleteMutation = useDeleteColor()

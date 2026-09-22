@@ -43,3 +43,7 @@ export async function deleteProduct(id: string) {
   const { data } = await api.delete<Product>(`/products/${id}`)
   return coerceProduct(data)
 }
+
+export async function deleteProductPermanently(id: string) {
+  await api.delete(`/products/${id}/permanent`)
+}

@@ -9,6 +9,7 @@ import { Pagination } from '../components/Pagination'
 import { SizeTable } from '../features/sizes/SizeTable'
 import { SizeForm, type SizeFormValues } from '../features/sizes/SizeForm'
 import { useCreateSize, useDeleteSize, useSizes, useUpdateSize } from '../features/sizes/hooks/useSizes'
+import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import type { Size } from '../types'
 
 export function SizesPage() {
@@ -17,7 +18,7 @@ export function SizesPage() {
   const [editing, setEditing] = useState<Size | null>(null)
   const [deleting, setDeleting] = useState<Size | null>(null)
 
-  const { data, isLoading, isError, error, refetch } = useSizes({ page, limit: 10 })
+  const { data, isLoading, isError, error, refetch } = useSizes({ page, limit: DEFAULT_PAGE_SIZE })
   const createMutation = useCreateSize()
   const updateMutation = useUpdateSize()
   const deleteMutation = useDeleteSize()

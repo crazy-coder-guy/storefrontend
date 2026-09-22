@@ -25,7 +25,11 @@ export function ProductFilters({
   return (
     <div className="mb-4 flex flex-wrap gap-3">
       <div className="w-full max-w-xs">
-        <Input placeholder="Search products…" value={search} onChange={(e) => onSearchChange(e.target.value)} />
+        <Input
+          placeholder="Search by name, SKU, type, or price…"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+        />
       </div>
       <div className="w-48">
         <Select value={categoryId} onChange={(e) => onCategoryChange(e.target.value)}>

@@ -5,11 +5,6 @@ import type { AdminSettings } from '../types'
 const STORAGE_KEY = 'admin-settings'
 
 export const DEFAULT_SETTINGS: AdminSettings = {
-  storeName: 'My T-Shirt Store',
-  storeEmail: '',
-  storePhone: '',
-  storeAddress: '',
-  currency: 'INR',
   lowStockThreshold: 10,
 }
 
@@ -21,9 +16,4 @@ export async function getSettings(): Promise<AdminSettings> {
   } catch {
     return DEFAULT_SETTINGS
   }
-}
-
-export async function saveSettings(settings: AdminSettings): Promise<AdminSettings> {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
-  return settings
 }

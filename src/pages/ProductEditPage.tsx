@@ -22,6 +22,11 @@ export function ProductEditPage() {
         basePrice: values.basePrice,
         mrp: values.mrp,
         status: values.status,
+        gsm: values.gsm ? Number(values.gsm) : null,
+        fabric: values.fabric || null,
+        fit: values.fit || null,
+        neckType: values.neckType || null,
+        biowash: values.biowash ?? false,
       },
       { onSuccess: () => navigate(`/products/${id}`) }
     )

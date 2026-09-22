@@ -5,12 +5,11 @@ import { ProductsPage } from '../pages/ProductsPage'
 import { ProductNewPage } from '../pages/ProductNewPage'
 import { ProductDetailPage } from '../pages/ProductDetailPage'
 import { ProductEditPage } from '../pages/ProductEditPage'
-import { CategoriesPage } from '../pages/CategoriesPage'
-import { SizesPage } from '../pages/SizesPage'
-import { ColorsPage } from '../pages/ColorsPage'
+import { ProductAttributesPage } from '../pages/ProductAttributesPage'
 import { InventoryPage } from '../pages/InventoryPage'
 import { InventoryHistoryPage } from '../pages/InventoryHistoryPage'
-import { SettingsPage } from '../pages/SettingsPage'
+import { OrdersPage } from '../pages/OrdersPage'
+import { CustomersPage } from '../pages/CustomersPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -24,12 +23,14 @@ export const router = createBrowserRouter([
       { path: 'products/new', element: <ProductNewPage /> },
       { path: 'products/:id', element: <ProductDetailPage /> },
       { path: 'products/:id/edit', element: <ProductEditPage /> },
-      { path: 'categories', element: <CategoriesPage /> },
-      { path: 'sizes', element: <SizesPage /> },
-      { path: 'colors', element: <ColorsPage /> },
+      { path: 'orders', element: <OrdersPage /> },
+      { path: 'customers', element: <CustomersPage /> },
+      { path: 'attributes', element: <ProductAttributesPage /> },
+      { path: 'categories', element: <Navigate to="/attributes" replace /> },
+      { path: 'sizes', element: <Navigate to="/attributes" replace /> },
+      { path: 'colors', element: <Navigate to="/attributes" replace /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/:variantId/history', element: <InventoryHistoryPage /> },
-      { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

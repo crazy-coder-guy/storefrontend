@@ -17,12 +17,12 @@ const ROUTE_TITLES: Array<{ test: RegExp; title: string }> = [
   { test: /^\/products\/[^/]+\/edit/, title: 'Edit Product' },
   { test: /^\/products\/[^/]+/, title: 'Product Details' },
   { test: /^\/products/, title: 'Products' },
-  { test: /^\/categories/, title: 'Categories' },
-  { test: /^\/inventory\/[^/]+\/history/, title: 'Inventory History' },
-  { test: /^\/inventory/, title: 'Inventory' },
-  { test: /^\/sizes/, title: 'Sizes' },
-  { test: /^\/colors/, title: 'Colors' },
-  { test: /^\/settings/, title: 'Settings' },
+  { test: /^\/orders/, title: 'Orders & Fulfillments' },
+  { test: /^\/customers/, title: 'Customers' },
+  { test: /^\/attributes/, title: 'Product Attributes' },
+  { test: /^\/categories/, title: 'Product Attributes' },
+  { test: /^\/sizes/, title: 'Product Attributes' },
+  { test: /^\/colors/, title: 'Product Attributes' },
 ]
 
 function getPageTitle(pathname: string) {

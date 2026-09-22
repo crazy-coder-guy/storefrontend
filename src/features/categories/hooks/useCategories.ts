@@ -50,3 +50,15 @@ export function useDeleteCategory() {
     onError: (error) => toast.fromError(error),
   })
 }
+
+export function useDeleteCategoryPermanently() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => categoryService.deleteCategoryPermanently(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: key })
+      toast.success('Category permanently deleted')
+    },
+    onError: (error) => toast.fromError(error),
+  })
+}
