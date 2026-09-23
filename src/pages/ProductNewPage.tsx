@@ -20,6 +20,7 @@ import { PageHeader } from '../components/PageHeader'
 import { Input } from '../components/Input'
 import { Textarea } from '../components/Textarea'
 import { Select } from '../components/Select'
+import { BADGE_OPTIONS } from '../utils/constants'
 import { Button } from '../components/Button'
 import { useCreateProduct } from '../features/products/hooks/useProducts'
 import { useAllCategories } from '../features/categories/hooks/useAllCategories'
@@ -35,6 +36,7 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
   gsm: z
     .string()
@@ -95,6 +97,7 @@ export function ProductNewPage() {
       productType: '',
       basePrice: 0,
       mrp: 0,
+      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -174,6 +177,7 @@ export function ProductNewPage() {
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        badge: values.badge || undefined,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -465,6 +469,17 @@ export function ProductNewPage() {
                     {...register('mrp')}
                     error={errors.mrp?.message}
                   />
+                </div>
+
+                <div className="mt-5">
+                  <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
+                    <option value="">None</option>
+                    {BADGE_OPTIONS.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
 
                 {watchedBasePrice > 0 && watchedMrp > 0 && (

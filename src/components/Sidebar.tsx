@@ -3,7 +3,9 @@ import type { IconSvgElement } from '@hugeicons/react'
 import {
   ChartHistogramIcon,
   ColorsIcon,
+  Megaphone01Icon,
   PackageIcon,
+  Search01Icon,
   Store01Icon,
   TShirtIcon,
   ShoppingBag01Icon,
@@ -25,6 +27,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Customers', to: '/customers', icon: UserGroupIcon },
   { label: 'Attributes', to: '/attributes', icon: ColorsIcon },
   { label: 'Inventory', to: '/inventory', icon: PackageIcon },
+  { label: 'Storefront Content', to: '/storefront-content', icon: Megaphone01Icon },
+  { label: 'Search Analytics', to: '/search-analytics', icon: Search01Icon },
 ]
 
 interface SidebarProps {

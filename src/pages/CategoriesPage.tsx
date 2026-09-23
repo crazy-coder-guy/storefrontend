@@ -56,6 +56,7 @@ export function CategoriesPage() {
       name: values.name,
       slug: values.slug || undefined,
       description: values.description || undefined,
+      badge: values.badge || null,
       status: values.status,
     }
     if (editing) {

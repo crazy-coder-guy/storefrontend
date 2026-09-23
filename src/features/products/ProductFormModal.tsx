@@ -24,6 +24,7 @@ import { useCreateProduct } from './hooks/useProducts'
 import { useAllCategories } from '../categories/hooks/useAllCategories'
 import { uploadProductImage } from '../../services/productImage.service'
 import { formatCurrency } from '../../utils/formatCurrency'
+import { BADGE_OPTIONS } from '../../utils/constants'
 import { toast } from '../../lib/toast'
 import * as productService from '../../services/product.service'
 import type { Product } from '../../types'
@@ -36,6 +37,7 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
   gsm: z
     .string()
@@ -80,6 +82,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -117,6 +120,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
       productType: '',
       basePrice: 0,
       mrp: 0,
+      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -138,6 +142,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: productToEdit.productType ?? '',
           basePrice: productToEdit.basePrice ?? 0,
           mrp: productToEdit.mrp ?? 0,
+          badge: productToEdit.badge ?? '',
           status: productToEdit.status ?? 'DRAFT',
           gsm: productToEdit.gsm != null ? String(productToEdit.gsm) : '',
           fabric: productToEdit.fabric ?? '',
@@ -156,6 +161,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: '',
           basePrice: 0,
           mrp: 0,
+          badge: '',
           status: 'DRAFT',
           gsm: '',
           fabric: '',
@@ -215,6 +221,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: values.productType,
           basePrice: values.basePrice,
           mrp: values.mrp,
+          badge: values.badge || undefined,
           status: values.status,
         },
         {
@@ -249,7 +256,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
 
   const tabs = [
     { id: 'general', label: 'Basic Info', icon: PackageIcon, hasError: !!(errors.name || errors.productType) },
-    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.categoryId) },
+    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.badge || errors.categoryId) },
     { id: 'specs', label: 'Specifications', icon: TShirtIcon, hasError: !!(errors.gsm || errors.fabric) },
     { id: 'media', label: 'Primary Media', icon: Image01Icon, hasError: false },
   ] as const
@@ -339,6 +346,20 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
                   {...register('mrp')}
                   error={errors.mrp?.message}
                 />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
+                  <option value="">None</option>
+                  {BADGE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+                <p className="text-xs text-black/50 dark:text-white/50">
+                  Shown as a small tag on the storefront.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2 border-t border-black/10 dark:border-white/10">

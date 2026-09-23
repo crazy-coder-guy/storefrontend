@@ -10,6 +10,8 @@ import { InventoryPage } from '../pages/InventoryPage'
 import { InventoryHistoryPage } from '../pages/InventoryHistoryPage'
 import { OrdersPage } from '../pages/OrdersPage'
 import { CustomersPage } from '../pages/CustomersPage'
+import { StorefrontContentPage } from '../pages/StorefrontContentPage'
+import { SearchAnalyticsPage } from '../pages/SearchAnalyticsPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -31,6 +33,8 @@ export const router = createBrowserRouter([
       { path: 'colors', element: <Navigate to="/attributes" replace /> },
       { path: 'inventory', element: <InventoryPage /> },
       { path: 'inventory/:variantId/history', element: <InventoryHistoryPage /> },
+      { path: 'storefront-content', element: <StorefrontContentPage /> },
+      { path: 'search-analytics', element: <SearchAnalyticsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

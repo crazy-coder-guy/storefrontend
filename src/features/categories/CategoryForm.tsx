@@ -6,12 +6,14 @@ import { Textarea } from '../../components/Textarea'
 import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
 import { slugify } from '../../utils/slugify'
+import { BADGE_OPTIONS } from '../../utils/constants'
 import type { Category } from '../../types'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   slug: z.string().optional(),
   description: z.string().optional(),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
@@ -37,6 +39,7 @@ export function CategoryForm({ initialValues, onSubmit, isSubmitting, onCancel }
       name: initialValues?.name ?? '',
       slug: initialValues?.slug ?? '',
       description: initialValues?.description ?? '',
+      badge: initialValues?.badge ?? '',
       status: initialValues?.status ?? 'ACTIVE',
     },
   })
@@ -55,6 +58,14 @@ export function CategoryForm({ initialValues, onSubmit, isSubmitting, onCancel }
         onChange={(e) => setValue('slug', e.target.value)}
       />
       <Textarea label="Description" rows={3} {...register('description')} error={errors.description?.message} />
+      <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
+        <option value="">None</option>
+        {BADGE_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </Select>
       <Select label="Status" {...register('status')} error={errors.status?.message}>
         <option value="ACTIVE">Active</option>
         <option value="INACTIVE">Inactive</option>

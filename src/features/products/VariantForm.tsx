@@ -6,6 +6,7 @@ import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
 import { useAllColors } from '../colors/hooks/useAllColors'
 import { useAllSizes } from '../sizes/hooks/useAllSizes'
+import { BADGE_OPTIONS } from '../../utils/constants'
 import type { ProductVariant } from '../../types'
 
 const schema = z.object({
@@ -19,6 +20,7 @@ const schema = z.object({
       message: 'Price must be greater than 0',
     }),
   stockQuantity: z.coerce.number().int().min(0).default(0),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']),
 })
 
@@ -48,6 +50,7 @@ export function VariantForm({ initialValues, onSubmit, isSubmitting, onCancel }:
       sku: initialValues?.sku ?? '',
       price: initialValues?.price != null ? String(initialValues.price) : '',
       stockQuantity: initialValues?.stockQuantity ?? 0,
+      badge: initialValues?.badge ?? '',
       status: initialValues?.status ?? 'ACTIVE',
     },
   })
@@ -116,6 +119,15 @@ export function VariantForm({ initialValues, onSubmit, isSubmitting, onCancel }:
           error={errors.stockQuantity?.message}
         />
       </div>
+
+      <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
+        <option value="">None</option>
+        {BADGE_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </Select>
 
       <Select label="Status" {...register('status')} error={errors.status?.message}>
         <option value="ACTIVE">Active</option>

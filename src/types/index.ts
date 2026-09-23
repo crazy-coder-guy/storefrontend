@@ -24,6 +24,7 @@ export interface Category {
   name: string
   slug: string
   description: string | null
+  badge: string | null
   status: EntityStatus
   createdAt: string
   updatedAt: string
@@ -34,6 +35,7 @@ export interface CategoryInput {
   name: string
   slug?: string
   description?: string
+  badge?: string | null
   status?: EntityStatus
 }
 
@@ -83,6 +85,7 @@ export interface Product {
   productType: string
   basePrice: number
   mrp: number
+  badge: string | null
   status: ProductStatus
   gsm: number | null
   fabric: string | null
@@ -104,6 +107,7 @@ export interface ProductInput {
   productType: string
   basePrice: number
   mrp: number
+  badge?: string | null
   status?: ProductStatus
   gsm?: number | null
   fabric?: string | null
@@ -139,6 +143,7 @@ export interface ProductVariant {
   sku: string
   price: number | null
   stockQuantity: number
+  badge: string | null
   status: EntityStatus
   createdAt: string
   updatedAt: string
@@ -152,6 +157,7 @@ export interface ProductVariantInput {
   sku?: string
   price?: number | null
   stockQuantity?: number
+  badge?: string | null
   status?: EntityStatus
 }
 
@@ -198,6 +204,28 @@ export interface AdminSettings {
   lowStockThreshold: number
 }
 
+export interface StorefrontSettings {
+  id: string
+  announcementText: string
+  heroTitle: string
+  heroSubtitle: string
+  updatedAt: string
+}
+
+export interface StorefrontSettingsInput {
+  announcementText?: string
+  heroTitle?: string
+  heroSubtitle?: string
+}
+
+export interface FeaturedProduct {
+  id: string
+  productId: string
+  sortOrder: number
+  createdAt: string
+  product: ProductDetail
+}
+
 export type StockStatus = 'in-stock' | 'low-stock' | 'out-of-stock'
 
 export type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
@@ -240,5 +268,12 @@ export interface Customer {
   status: EntityStatus
   lastOrderAt: string
   createdAt: string
+}
+
+export interface TopSearchTerm {
+  term: string
+  searchCount: number
+  avgResults: number
+  lastSearchedAt: string
 }
 

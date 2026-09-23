@@ -21,6 +21,7 @@ export function ProductEditPage() {
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : null,
         fabric: values.fabric || null,

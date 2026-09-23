@@ -6,6 +6,7 @@ import { Textarea } from '../../components/Textarea'
 import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
 import { useAllCategories } from '../categories/hooks/useAllCategories'
+import { BADGE_OPTIONS } from '../../utils/constants'
 import type { Product } from '../../types'
 
 const schema = z.object({
@@ -16,6 +17,7 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
   gsm: z
     .string()
@@ -56,6 +58,7 @@ export function ProductForm({ initialValues, onSubmit, isSubmitting, onCancel }:
       productType: initialValues?.productType ?? '',
       basePrice: initialValues?.basePrice ?? 0,
       mrp: initialValues?.mrp ?? 0,
+      badge: initialValues?.badge ?? '',
       status: initialValues?.status ?? 'DRAFT',
       gsm: initialValues?.gsm != null ? String(initialValues.gsm) : '',
       fabric: initialValues?.fabric ?? '',
@@ -126,6 +129,15 @@ export function ProductForm({ initialValues, onSubmit, isSubmitting, onCancel }:
             {categoriesData?.items.map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
+              </option>
+            ))}
+          </Select>
+
+          <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
+            <option value="">None</option>
+            {BADGE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
           </Select>
