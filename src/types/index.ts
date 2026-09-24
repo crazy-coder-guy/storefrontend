@@ -121,6 +121,8 @@ export type ImageType = 'PRODUCT' | 'MODEL' | 'LIFESTYLE'
 export interface ProductImage {
   id: string
   productId: string
+  colorId: string | null
+  color?: Color | null
   imageUrl: string
   imageType: ImageType
   sortOrder: number
@@ -133,6 +135,7 @@ export interface ProductImageInput {
   imageType?: ImageType
   sortOrder?: number
   isPrimary?: boolean
+  colorId?: string | null
 }
 
 export interface ProductVariant {

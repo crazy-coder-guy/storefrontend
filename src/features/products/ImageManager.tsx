@@ -12,9 +12,17 @@ import {
   useUpdateProductImage,
   useUploadProductImage,
 } from './hooks/useProductImages'
-import type { ImageType, ProductImage } from '../../types'
+import type { Color, ImageType, ProductImage } from '../../types'
 
-export function ImageManager({ productId }: { productId: string }) {
+interface ImageManagerProps {
+  productId: string
+  /** Colors this product actually has variants in — the only valid choices for tagging an image. */
+  colors: Color[]
+}
+
+const NO_COLOR = ''
+
+export function ImageManager({ productId, colors }: ImageManagerProps) {
   const { data: images, isLoading } = useProductImages(productId)
   const uploadMutation = useUploadProductImage(productId)
   const updateMutation = useUpdateProductImage(productId)
@@ -23,6 +31,7 @@ export function ImageManager({ productId }: { productId: string }) {
   const [file, setFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [imageType, setImageType] = useState<ImageType>('PRODUCT')
+  const [colorId, setColorId] = useState<string>(NO_COLOR)
   const [deleting, setDeleting] = useState<ProductImage | null>(null)
   const [selectedPreviewImage, setSelectedPreviewImage] = useState<ProductImage | null>(null)
   const [isDragging, setIsDragging] = useState(false)
@@ -50,11 +59,12 @@ export function ImageManager({ productId }: { productId: string }) {
   function handleUpload() {
     if (!file) return
     uploadMutation.mutate(
-      { file, imageType },
+      { file, imageType, colorId: colorId || undefined },
       {
         onSuccess: () => {
           setFile(null)
           setPreviewUrl(null)
+          setColorId(NO_COLOR)
           if (fileInputRef.current) fileInputRef.current.value = ''
         },
       }
@@ -63,6 +73,10 @@ export function ImageManager({ productId }: { productId: string }) {
 
   function handleMakePrimary(image: ProductImage) {
     updateMutation.mutate({ imageId: image.id, input: { isPrimary: true } })
+  }
+
+  function handleChangeColor(image: ProductImage, newColorId: string) {
+    updateMutation.mutate({ imageId: image.id, input: { colorId: newColorId || null } })
   }
 
   return (
@@ -95,12 +109,22 @@ export function ImageManager({ productId }: { productId: string }) {
               <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
             </div>
             <p className="max-w-xs truncate text-xs font-semibold text-black dark:text-white">{file?.name}</p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center justify-center gap-3">
               <div className="w-36">
                 <Select value={imageType} onChange={(e) => setImageType(e.target.value as ImageType)}>
                   <option value="PRODUCT">Product</option>
                   <option value="MODEL">Model</option>
                   <option value="LIFESTYLE">Lifestyle</option>
+                </Select>
+              </div>
+              <div className="w-40">
+                <Select value={colorId} onChange={(e) => setColorId(e.target.value)}>
+                  <option value={NO_COLOR}>No specific color</option>
+                  {colors.map((color) => (
+                    <option key={color.id} value={color.id}>
+                      {color.name}
+                    </option>
+                  ))}
                 </Select>
               </div>
               <Button onClick={handleUpload} disabled={uploadMutation.isPending} className="px-4 py-2 text-xs font-semibold">
@@ -176,6 +200,31 @@ export function ImageManager({ productId }: { productId: string }) {
                     {image.imageType}
                   </span>
                 )}
+
+                {/* Assigned Color Swatch */}
+                {image.color && (
+                  <span
+                    className="absolute right-2 top-2 h-4 w-4 rounded-full border border-white/70 shadow-xs"
+                    style={{ backgroundColor: image.color.hexCode }}
+                    title={image.color.name}
+                  />
+                )}
+              </div>
+
+              {/* Color Assignment Row */}
+              <div className="border-t border-black/10 px-2.5 py-1.5 dark:border-white/10">
+                <Select
+                  value={image.colorId ?? NO_COLOR}
+                  onChange={(e) => handleChangeColor(image, e.target.value)}
+                  className="!py-1 !text-[11px]"
+                >
+                  <option value={NO_COLOR}>No specific color</option>
+                  {colors.map((color) => (
+                    <option key={color.id} value={color.id}>
+                      {color.name}
+                    </option>
+                  ))}
+                </Select>
               </div>
 
               {/* Explicit Action Controls Row */}

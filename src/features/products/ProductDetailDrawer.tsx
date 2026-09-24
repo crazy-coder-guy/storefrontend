@@ -59,6 +59,10 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
   const variantCount = variants?.length ?? 0
   const imageCount = images?.length ?? 0
 
+  const productColors = Array.from(
+    new Map((variants ?? []).filter((v) => v.color).map((v) => [v.color!.id, v.color!])).values()
+  )
+
   function openCreateVariant() {
     setEditingVariant(null)
     setVariantFormOpen(true)
@@ -251,7 +255,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
                   Upload images and set primary thumbnail for catalog display.
                 </p>
               </div>
-              <ImageManager productId={id} />
+              <ImageManager productId={id} colors={productColors} />
             </div>
           )}
 
