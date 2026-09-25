@@ -261,6 +261,16 @@ export interface Order {
   createdAt: string
 }
 
+export interface CustomerLastVisit {
+  city: string | null
+  region: string | null
+  country: string | null
+  deviceType: string
+  os: string | null
+  browser: string | null
+  lastSeenAt: string
+}
+
 export interface Customer {
   id: string
   name: string
@@ -271,6 +281,7 @@ export interface Customer {
   status: EntityStatus
   lastOrderAt: string
   createdAt: string
+  lastVisit: CustomerLastVisit | null
 }
 
 export interface TopSearchTerm {

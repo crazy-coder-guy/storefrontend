@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ComputerIcon, Location01Icon, SmartPhone01Icon } from '@hugeicons/core-free-icons'
 import { PageHeader } from '../components/PageHeader'
 import { Table } from '../components/Table'
 import { Input } from '../components/Input'
@@ -13,7 +15,29 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import { formatCurrency } from '../utils/formatCurrency'
 import { formatDate } from '../utils/formatDate'
-import type { Customer } from '../types'
+import type { Customer, CustomerLastVisit } from '../types'
+
+function formatLocation(visit: CustomerLastVisit): string {
+  const parts = [visit.city, visit.country].filter(Boolean)
+  return parts.length > 0 ? parts.join(', ') : 'Unknown location'
+}
+
+function LastSeenCell({ lastVisit }: { lastVisit: CustomerLastVisit | null }) {
+  if (!lastVisit) return <span className="text-black/30 dark:text-white/30">—</span>
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      <HugeiconsIcon icon={Location01Icon} size={13} className="text-black/40 dark:text-white/40 shrink-0" />
+      <span>{formatLocation(lastVisit)}</span>
+      <span className="text-black/20 dark:text-white/20">•</span>
+      <HugeiconsIcon
+        icon={lastVisit.deviceType === 'desktop' ? ComputerIcon : SmartPhone01Icon}
+        size={13}
+        className="text-black/40 dark:text-white/40 shrink-0"
+      />
+      <span className="capitalize">{lastVisit.deviceType}</span>
+    </div>
+  )
+}
 
 export function CustomersPage() {
   const [search, setSearch] = useState('')
@@ -94,6 +118,12 @@ export function CustomersPage() {
             render: (row) => <StatusBadge status={row.status} showDot={false} />,
           },
           {
+            header: 'Last Seen',
+            key: 'lastVisit',
+            className: 'min-w-[180px]',
+            render: (row) => <LastSeenCell lastVisit={row.lastVisit} />,
+          },
+          {
             header: 'Last Order',
             key: 'lastOrderAt',
             className: 'min-w-[140px] text-right',
@@ -132,6 +162,35 @@ export function CustomersPage() {
             <div className="flex items-center justify-between py-4">
               <span className="font-medium text-black/50 dark:text-white/50">Phone Number</span>
               <span className="font-semibold text-black dark:text-white">{selectedCustomer.phone}</span>
+            </div>
+
+            {/* 3.5. Location & Device (from IP + user-agent on their last visit) */}
+            <div className="flex items-center justify-between py-4">
+              <span className="font-medium text-black/50 dark:text-white/50">Last Seen From</span>
+              {selectedCustomer.lastVisit ? (
+                <div className="text-right">
+                  <div className="flex items-center justify-end gap-1.5 font-semibold text-black dark:text-white">
+                    <HugeiconsIcon icon={Location01Icon} size={14} className="text-black/40 dark:text-white/40" />
+                    <span>{formatLocation(selectedCustomer.lastVisit)}</span>
+                  </div>
+                  <div className="mt-0.5 flex items-center justify-end gap-1.5 text-xs text-black/50 dark:text-white/50">
+                    <HugeiconsIcon
+                      icon={selectedCustomer.lastVisit.deviceType === 'desktop' ? ComputerIcon : SmartPhone01Icon}
+                      size={12}
+                    />
+                    <span className="capitalize">
+                      {selectedCustomer.lastVisit.deviceType}
+                      {selectedCustomer.lastVisit.os ? ` • ${selectedCustomer.lastVisit.os}` : ''}
+                      {selectedCustomer.lastVisit.browser ? ` • ${selectedCustomer.lastVisit.browser}` : ''}
+                    </span>
+                  </div>
+                  <div className="mt-0.5 text-xs text-black/40 dark:text-white/40">
+                    {formatDate(selectedCustomer.lastVisit.lastSeenAt)}
+                  </div>
+                </div>
+              ) : (
+                <span className="text-black/40 dark:text-white/40">Not tracked yet</span>
+              )}
             </div>
 
             {/* 4. Customer Since */}
