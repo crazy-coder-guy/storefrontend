@@ -3,6 +3,7 @@ import type { IconSvgElement } from '@hugeicons/react'
 import {
   ChartHistogramIcon,
   ColorsIcon,
+  Mail01Icon,
   Megaphone01Icon,
   Notification03Icon,
   PackageIcon,
@@ -32,6 +33,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Storefront Content', to: '/storefront-content', icon: Megaphone01Icon },
   { label: 'Notifications', to: '/notifications', icon: Notification03Icon },
   { label: 'Reviews', to: '/reviews', icon: StarIcon },
+  { label: 'Newsletter', to: '/newsletter', icon: Mail01Icon },
   { label: 'Search Analytics', to: '/search-analytics', icon: Search01Icon },
 ]
 
