@@ -7,7 +7,7 @@ import { Button } from '../components/Button'
 import { Modal } from '../components/Modal'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { HugeiconsIcon } from '@hugeicons/react'
-import { Delete02Icon, Megaphone01Icon, UserGroupIcon } from '@hugeicons/core-free-icons'
+import { Add01Icon, Delete02Icon, Megaphone01Icon, UserGroupIcon } from '@hugeicons/core-free-icons'
 import {
   useCreateTemplate,
   useDeleteTemplate,
@@ -16,14 +16,37 @@ import {
   useSubscribers,
   useTemplates,
 } from '../features/notifications/hooks/useNotifications'
-import type { NotificationTemplate } from '../services/push.service'
+import type { NotificationAction, NotificationTemplate } from '../services/push.service'
 
 const EVERYONE = ''
+const MAX_ACTIONS = 2
+
+interface ActionRow {
+  title: string
+  url: string
+}
+
+function toNotificationActions(rows: ActionRow[]): NotificationAction[] | undefined {
+  const actions = rows
+    .filter((row) => row.title.trim())
+    .map((row, i) => ({
+      action: `action-${i + 1}`,
+      title: row.title.trim(),
+      url: row.url.trim() || undefined,
+    }))
+  return actions.length > 0 ? actions : undefined
+}
+
+function fromNotificationActions(actions: NotificationAction[] | null | undefined): ActionRow[] {
+  return (actions ?? []).map((a) => ({ title: a.title, url: a.url ?? '' }))
+}
 
 export function NotificationsPage() {
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')
   const [url, setUrl] = useState('')
+  const [image, setImage] = useState('')
+  const [actionRows, setActionRows] = useState<ActionRow[]>([])
   const [recipientId, setRecipientId] = useState(EVERYONE)
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false)
   const [templateName, setTemplateName] = useState('')
@@ -44,6 +67,8 @@ export function NotificationsPage() {
         title: title.trim(),
         body: body.trim(),
         url: url.trim() || undefined,
+        image: image.trim() || undefined,
+        actions: toNotificationActions(actionRows),
         userId: recipientId || undefined,
       },
       {
@@ -51,6 +76,8 @@ export function NotificationsPage() {
           setTitle('')
           setBody('')
           setUrl('')
+          setImage('')
+          setActionRows([])
           setRecipientId(EVERYONE)
         },
       }
@@ -61,14 +88,35 @@ export function NotificationsPage() {
     setTitle(template.title)
     setBody(template.body)
     setUrl(template.url ?? '')
+    setImage(template.image ?? '')
+    setActionRows(fromNotificationActions(template.actions))
   }
 
   function handleSaveTemplate() {
     if (!templateName.trim() || !title.trim() || !body.trim()) return
     createTemplate.mutate(
-      { name: templateName.trim(), title: title.trim(), body: body.trim(), url: url.trim() || undefined },
+      {
+        name: templateName.trim(),
+        title: title.trim(),
+        body: body.trim(),
+        url: url.trim() || undefined,
+        image: image.trim() || undefined,
+        actions: toNotificationActions(actionRows),
+      },
       { onSuccess: () => setSaveTemplateOpen(false) }
     )
+  }
+
+  function handleAddActionRow() {
+    setActionRows((rows) => (rows.length < MAX_ACTIONS ? [...rows, { title: '', url: '' }] : rows))
+  }
+
+  function handleActionRowChange(index: number, field: keyof ActionRow, value: string) {
+    setActionRows((rows) => rows.map((row, i) => (i === index ? { ...row, [field]: value } : row)))
+  }
+
+  function handleRemoveActionRow(index: number) {
+    setActionRows((rows) => rows.filter((_, i) => i !== index))
   }
 
   const selectedSubscriber = subscribers.data?.find((s) => s.id === recipientId)
@@ -127,6 +175,68 @@ export function NotificationsPage() {
             type="url"
             hint="Opens this page when the notification is clicked. Defaults to the homepage."
           />
+          <Input
+            label="Image (optional)"
+            value={image}
+            onChange={(e) => setImage(e.target.value)}
+            placeholder="https://your-storefront-domain.com/banner.jpg"
+            type="url"
+            hint="A large hero image shown inside the notification, where the browser supports it."
+          />
+
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-medium text-black/70 dark:text-white/70">
+                Action buttons (optional, up to {MAX_ACTIONS})
+              </label>
+              {actionRows.length < MAX_ACTIONS && (
+                <button
+                  type="button"
+                  onClick={handleAddActionRow}
+                  className="flex items-center gap-1 text-xs font-medium text-black/60 hover:text-black dark:text-white/60 dark:hover:text-white cursor-pointer"
+                >
+                  <HugeiconsIcon icon={Add01Icon} size={14} />
+                  Add button
+                </button>
+              )}
+            </div>
+
+            {actionRows.length === 0 ? (
+              <p className="text-xs text-black/40 dark:text-white/40">
+                No buttons added — clicking the notification itself still opens the link above.
+              </p>
+            ) : (
+              actionRows.map((row, index) => (
+                <div key={index} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <Input
+                      value={row.title}
+                      onChange={(e) => handleActionRowChange(index, 'title', e.target.value)}
+                      placeholder="Button label, e.g. View Order"
+                      maxLength={50}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Input
+                      value={row.url}
+                      onChange={(e) => handleActionRowChange(index, 'url', e.target.value)}
+                      placeholder="Link (optional, defaults to the link above)"
+                      type="url"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveActionRow(index)}
+                    className="mt-2 shrink-0 rounded p-1 text-black/40 hover:bg-rose-500/10 hover:text-rose-600 dark:text-white/40 dark:hover:bg-rose-500/20 dark:hover:text-rose-400"
+                    title="Remove button"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={14} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+
           <div className="flex items-center justify-between pt-2">
             <span className="flex items-center gap-1.5 text-xs text-black/50 dark:text-white/50">
               <HugeiconsIcon icon={UserGroupIcon} size={14} />
@@ -161,7 +271,7 @@ export function NotificationsPage() {
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black">
                   <HugeiconsIcon icon={Megaphone01Icon} size={16} />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-black dark:text-white">
                     {title.trim() || 'Notification title'}
                   </p>
@@ -170,6 +280,28 @@ export function NotificationsPage() {
                   </p>
                 </div>
               </div>
+              {image.trim() && (
+                <img
+                  src={image.trim()}
+                  alt=""
+                  className="mt-2.5 h-28 w-full rounded-md object-cover"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+              )}
+              {actionRows.some((row) => row.title.trim()) && (
+                <div className="mt-2.5 flex gap-2 border-t border-black/10 pt-2.5 dark:border-white/10">
+                  {actionRows
+                    .filter((row) => row.title.trim())
+                    .map((row, i) => (
+                      <span
+                        key={i}
+                        className="flex-1 truncate rounded border border-black/10 px-2 py-1 text-center text-[11px] font-medium text-black/70 dark:border-white/10 dark:text-white/70"
+                      >
+                        {row.title.trim()}
+                      </span>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
 

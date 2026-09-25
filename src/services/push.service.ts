@@ -1,11 +1,20 @@
 import { api } from './api'
 import type { PaginatedResponse } from '../types'
 
+export interface NotificationAction {
+  action: string
+  title: string
+  icon?: string
+  url?: string
+}
+
 export interface PushNotification {
   id: string
   title: string
   body: string
   url: string | null
+  image: string | null
+  actions: NotificationAction[] | null
   targetUserId: string | null
   successCount: number
   failureCount: number
@@ -16,6 +25,8 @@ export interface SendNotificationInput {
   title: string
   body: string
   url?: string
+  image?: string
+  actions?: NotificationAction[]
   userId?: string
 }
 
@@ -32,6 +43,8 @@ export interface NotificationTemplate {
   title: string
   body: string
   url: string | null
+  image: string | null
+  actions: NotificationAction[] | null
   createdAt: string
   updatedAt: string
 }
@@ -41,6 +54,8 @@ export interface CreateTemplateInput {
   title: string
   body: string
   url?: string
+  image?: string
+  actions?: NotificationAction[]
 }
 
 export async function sendNotification(input: SendNotificationInput) {
