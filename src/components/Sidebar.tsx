@@ -7,6 +7,7 @@ import {
   Notification03Icon,
   PackageIcon,
   Search01Icon,
+  StarIcon,
   Store01Icon,
   TShirtIcon,
   ShoppingBag01Icon,
@@ -30,6 +31,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Inventory', to: '/inventory', icon: PackageIcon },
   { label: 'Storefront Content', to: '/storefront-content', icon: Megaphone01Icon },
   { label: 'Notifications', to: '/notifications', icon: Notification03Icon },
+  { label: 'Reviews', to: '/reviews', icon: StarIcon },
   { label: 'Search Analytics', to: '/search-analytics', icon: Search01Icon },
 ]
 

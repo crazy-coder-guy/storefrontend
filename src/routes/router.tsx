@@ -13,6 +13,7 @@ import { CustomersPage } from '../pages/CustomersPage'
 import { StorefrontContentPage } from '../pages/StorefrontContentPage'
 import { SearchAnalyticsPage } from '../pages/SearchAnalyticsPage'
 import { NotificationsPage } from '../pages/NotificationsPage'
+import { ReviewsPage } from '../pages/ReviewsPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
       { path: 'storefront-content', element: <StorefrontContentPage /> },
       { path: 'search-analytics', element: <SearchAnalyticsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
+      { path: 'reviews', element: <ReviewsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
