@@ -11,3 +11,11 @@ export function useCustomers(params: ListCustomersParams) {
     placeholderData: (prev) => prev,
   })
 }
+
+export function useCustomerCart(id: string | undefined) {
+  return useQuery({
+    queryKey: [...listKey, id, 'cart'],
+    queryFn: () => customerService.getCustomerCart(id as string),
+    enabled: Boolean(id),
+  })
+}

@@ -6,11 +6,14 @@ import { Table } from '../components/Table'
 import { Input } from '../components/Input'
 import { Drawer } from '../components/Drawer'
 import { StatusBadge } from '../components/Badge'
+import { CartDetailSection } from '../components/CartDetailSection'
+import type { CartReminderInput } from '../components/CartDetailSection'
 import { Pagination } from '../components/Pagination'
 import { SkeletonRows } from '../components/Skeleton'
 import { ErrorState } from '../components/ErrorState'
 import { EmptyState } from '../components/EmptyState'
-import { useCustomers } from '../features/customers/hooks/useCustomers'
+import { useCustomers, useCustomerCart } from '../features/customers/hooks/useCustomers'
+import { useSendNotification } from '../features/notifications/hooks/useNotifications'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { DEFAULT_PAGE_SIZE } from '../utils/constants'
 import { formatCurrency } from '../utils/formatCurrency'
@@ -51,6 +54,19 @@ export function CustomersPage() {
     page,
     limit: DEFAULT_PAGE_SIZE,
   })
+
+  const { data: cart, isLoading: isCartLoading } = useCustomerCart(selectedCustomer?.id)
+  const sendNotificationMutation = useSendNotification()
+
+  function handleSendCartReminder(input: CartReminderInput) {
+    if (!selectedCustomer) return
+    sendNotificationMutation.mutate({
+      userId: selectedCustomer.id,
+      title: input.title,
+      body: input.body,
+      url: '/cart',
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -216,6 +232,15 @@ export function CustomersPage() {
               <span className="text-black/70 dark:text-white/70 text-sm">Lifetime Spend Value</span>
               <span className="text-xl text-black dark:text-white">{formatCurrency(selectedCustomer.totalSpent)}</span>
             </div>
+
+            {/* 8. Current Cart */}
+            <CartDetailSection
+              cart={cart}
+              isLoading={isCartLoading}
+              customerName={selectedCustomer.name}
+              onSendReminder={handleSendCartReminder}
+              isSending={sendNotificationMutation.isPending}
+            />
           </div>
         )}
       </Drawer>

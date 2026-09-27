@@ -20,6 +20,7 @@ export type RealtimeEntity =
   | 'exchange'
   | 'newsletter'
   | 'storefront'
+  | 'cart'
 
 export interface RealtimeEvent {
   entity: RealtimeEntity

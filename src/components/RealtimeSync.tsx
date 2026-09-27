@@ -17,6 +17,7 @@ const ENTITY_QUERY_KEYS: Record<RealtimeEvent['entity'], string[][]> = {
   exchange: [['exchanges']],
   newsletter: [['newsletter-subscribers']],
   storefront: [['storefront']],
+  cart: [['carts'], ['customers']],
 }
 
 export function RealtimeSync() {

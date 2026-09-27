@@ -10,6 +10,7 @@ import { InventoryPage } from '../pages/InventoryPage'
 import { InventoryHistoryPage } from '../pages/InventoryHistoryPage'
 import { OrdersPage } from '../pages/OrdersPage'
 import { CustomersPage } from '../pages/CustomersPage'
+import { CartsPage } from '../pages/CartsPage'
 import { StorefrontContentPage } from '../pages/StorefrontContentPage'
 import { SearchAnalyticsPage } from '../pages/SearchAnalyticsPage'
 import { NotificationsPage } from '../pages/NotificationsPage'
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'products/:id/edit', element: <ProductEditPage /> },
       { path: 'orders', element: <OrdersPage /> },
       { path: 'customers', element: <CustomersPage /> },
+      { path: 'carts', element: <CartsPage /> },
       { path: 'attributes', element: <ProductAttributesPage /> },
       { path: 'categories', element: <Navigate to="/attributes" replace /> },
       { path: 'sizes', element: <Navigate to="/attributes" replace /> },
