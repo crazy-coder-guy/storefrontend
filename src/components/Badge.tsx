@@ -29,6 +29,9 @@ const STATUS_TEXT_CLASSES: Record<string, string> = {
   SHIPPED: 'text-indigo-600 dark:text-indigo-400',
   DELIVERED: 'text-emerald-600 dark:text-emerald-400',
   CANCELLED: 'text-rose-600 dark:text-rose-400',
+  APPROVED: 'text-blue-600 dark:text-blue-400',
+  REJECTED: 'text-rose-600 dark:text-rose-400',
+  COMPLETED: 'text-emerald-600 dark:text-emerald-400',
 }
 
 const STATUS_DOT_CLASSES: Record<string, string> = {
@@ -40,6 +43,9 @@ const STATUS_DOT_CLASSES: Record<string, string> = {
   SHIPPED: 'bg-indigo-500',
   DELIVERED: 'bg-emerald-500',
   CANCELLED: 'bg-rose-500',
+  APPROVED: 'bg-blue-500',
+  REJECTED: 'bg-rose-500',
+  COMPLETED: 'bg-emerald-500',
 }
 
 export function StatusBadge({ status, showDot = true }: { status: string; showDot?: boolean }) {

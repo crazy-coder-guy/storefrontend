@@ -14,6 +14,7 @@ import { StorefrontContentPage } from '../pages/StorefrontContentPage'
 import { SearchAnalyticsPage } from '../pages/SearchAnalyticsPage'
 import { NotificationsPage } from '../pages/NotificationsPage'
 import { ReviewsPage } from '../pages/ReviewsPage'
+import { ExchangesPage } from '../pages/ExchangesPage'
 import { NewsletterPage } from '../pages/NewsletterPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: 'search-analytics', element: <SearchAnalyticsPage /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'reviews', element: <ReviewsPage /> },
+      { path: 'exchanges', element: <ExchangesPage /> },
       { path: 'newsletter', element: <NewsletterPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
