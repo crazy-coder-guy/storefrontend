@@ -24,17 +24,34 @@ export function RealtimeSync() {
   const queryClient = useQueryClient()
 
   useEffect(() => {
+    // Debounced, not immediate: a burst of events (e.g. bulk-editing several
+    // variants) would otherwise fire invalidateQueries once per event, each
+    // restarting the same query's in-flight refetch — which can stack up to
+    // several seconds before it finally settles. Coalescing everything
+    // within a short window into one invalidate per key lets a burst
+    // resolve about as fast as a single change does.
+    const pendingKeys = new Map<string, string[]>()
+    let timer: ReturnType<typeof setTimeout> | null = null
+
+    function flush() {
+      timer = null
+      for (const queryKey of pendingKeys.values()) {
+        queryClient.invalidateQueries({ queryKey })
+      }
+      pendingKeys.clear()
+    }
+
     function handleEvent(event: RealtimeEvent) {
       const keys = ENTITY_QUERY_KEYS[event.entity]
       if (!keys) return
-      for (const queryKey of keys) {
-        queryClient.invalidateQueries({ queryKey })
-      }
+      for (const queryKey of keys) pendingKeys.set(JSON.stringify(queryKey), queryKey)
+      if (!timer) timer = setTimeout(flush, 250)
     }
 
     realtimeSocket.on('realtime:event', handleEvent)
     return () => {
       realtimeSocket.off('realtime:event', handleEvent)
+      if (timer) clearTimeout(timer)
     }
   }, [queryClient])
 
