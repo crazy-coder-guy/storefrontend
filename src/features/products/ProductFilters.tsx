@@ -45,6 +45,7 @@ export function ProductFilters({
         <Select value={status} onChange={(e) => onStatusChange(e.target.value as ProductStatus | '')}>
           <option value="">All statuses</option>
           <option value="ACTIVE">Active</option>
+          <option value="LAUNCHING_SOON">Launching Soon</option>
           <option value="DRAFT">Draft</option>
           <option value="INACTIVE">Inactive</option>
         </Select>

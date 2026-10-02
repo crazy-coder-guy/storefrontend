@@ -32,6 +32,7 @@ const STATUS_TEXT_CLASSES: Record<string, string> = {
   APPROVED: 'text-blue-600 dark:text-blue-400',
   REJECTED: 'text-rose-600 dark:text-rose-400',
   COMPLETED: 'text-emerald-600 dark:text-emerald-400',
+  LAUNCHING_SOON: 'text-purple-600 dark:text-purple-400',
 }
 
 const STATUS_DOT_CLASSES: Record<string, string> = {
@@ -46,6 +47,7 @@ const STATUS_DOT_CLASSES: Record<string, string> = {
   APPROVED: 'bg-blue-500',
   REJECTED: 'bg-rose-500',
   COMPLETED: 'bg-emerald-500',
+  LAUNCHING_SOON: 'bg-purple-500',
 }
 
 export function StatusBadge({ status, showDot = true }: { status: string; showDot?: boolean }) {

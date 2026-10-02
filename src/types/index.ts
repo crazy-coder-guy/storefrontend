@@ -1,5 +1,5 @@
 export type EntityStatus = 'ACTIVE' | 'INACTIVE'
-export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT'
+export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'LAUNCHING_SOON'
 
 export interface PaginationMeta {
   page: number

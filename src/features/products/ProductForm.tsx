@@ -18,7 +18,7 @@ const schema = z.object({
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
   badge: z.string().max(50).optional(),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT']),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
     .string()
     .optional()
@@ -144,6 +144,7 @@ export function ProductForm({ initialValues, onSubmit, isSubmitting, onCancel }:
 
           <Select label="Publication Status" {...register('status')} error={errors.status?.message}>
             <option value="DRAFT">Draft</option>
+            <option value="LAUNCHING_SOON">Launching Soon</option>
             <option value="ACTIVE">Active</option>
             <option value="INACTIVE">Inactive</option>
           </Select>
