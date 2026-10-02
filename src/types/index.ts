@@ -1,5 +1,6 @@
 export type EntityStatus = 'ACTIVE' | 'INACTIVE'
 export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'DRAFT' | 'LAUNCHING_SOON'
+export type CouponType = 'PERCENTAGE' | 'FIXED'
 
 export interface PaginationMeta {
   page: number
@@ -53,6 +54,34 @@ export interface SizeInput {
   name: string
   code: string
   sortOrder?: number
+  status?: EntityStatus
+}
+
+export interface Coupon {
+  id: string
+  code: string
+  type: CouponType
+  value: string
+  minOrderValue: string | null
+  maxDiscountAmount: string | null
+  usageLimit: number | null
+  usedCount: number
+  perUserLimit: number
+  expiresAt: string | null
+  status: EntityStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export interface CouponInput {
+  code: string
+  type: CouponType
+  value: number
+  minOrderValue?: number | null
+  maxDiscountAmount?: number | null
+  usageLimit?: number | null
+  perUserLimit?: number
+  expiresAt?: string | null
   status?: EntityStatus
 }
 

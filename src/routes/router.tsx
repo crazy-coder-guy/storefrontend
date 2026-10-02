@@ -17,6 +17,7 @@ import { NotificationsPage } from '../pages/NotificationsPage'
 import { ReviewsPage } from '../pages/ReviewsPage'
 import { ExchangesPage } from '../pages/ExchangesPage'
 import { NewsletterPage } from '../pages/NewsletterPage'
+import { CouponsPage } from '../pages/CouponsPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
 
 export const router = createBrowserRouter([
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'reviews', element: <ReviewsPage /> },
       { path: 'exchanges', element: <ExchangesPage /> },
       { path: 'newsletter', element: <NewsletterPage /> },
+      { path: 'coupons', element: <CouponsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
