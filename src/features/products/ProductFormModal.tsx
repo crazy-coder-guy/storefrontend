@@ -1,15 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  Upload01Icon,
-  Cancel01Icon,
   Coins01Icon,
   PackageIcon,
-  Image01Icon,
   TShirtIcon,
   Tick01Icon,
   ArrowLeft01Icon,
@@ -22,9 +19,7 @@ import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
 import { useCreateProduct } from './hooks/useProducts'
 import { useAllCategories } from '../categories/hooks/useAllCategories'
-import { uploadProductImage } from '../../services/productImage.service'
 import { formatCurrency } from '../../utils/formatCurrency'
-import { BADGE_OPTIONS } from '../../utils/constants'
 import { toast } from '../../lib/toast'
 import * as productService from '../../services/product.service'
 import type { Product } from '../../types'
@@ -37,7 +32,6 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
-  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
     .string()
@@ -64,11 +58,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
   const createMutation = useCreateProduct()
   const { data: categoriesData, isLoading: categoriesLoading } = useAllCategories()
 
-  const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'specs' | 'media'>('general')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'specs'>('general')
 
   const isEditing = !!productToEdit
 
@@ -82,7 +72,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
-        badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -96,11 +85,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
       handleClose()
     },
     onError: (error) => toast.fromError(error),
-  })
-
-  const uploadImageMutation = useMutation({
-    mutationFn: ({ productId, file }: { productId: string; file: File }) =>
-      uploadProductImage(productId, { file, imageType: 'PRODUCT', isPrimary: true }),
   })
 
   const {
@@ -120,7 +104,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
       productType: '',
       basePrice: 0,
       mrp: 0,
-      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -142,7 +125,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: productToEdit.productType ?? '',
           basePrice: productToEdit.basePrice ?? 0,
           mrp: productToEdit.mrp ?? 0,
-          badge: productToEdit.badge ?? '',
           status: productToEdit.status ?? 'DRAFT',
           gsm: productToEdit.gsm != null ? String(productToEdit.gsm) : '',
           fabric: productToEdit.fabric ?? '',
@@ -150,8 +132,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           neckType: productToEdit.neckType ?? '',
           biowash: productToEdit.biowash ?? false,
         })
-        const primaryImg = productToEdit.images?.[0]?.imageUrl
-        if (primaryImg) setPreviewUrl(primaryImg)
       } else {
         reset({
           name: '',
@@ -161,7 +141,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: '',
           basePrice: 0,
           mrp: 0,
-          badge: '',
           status: 'DRAFT',
           gsm: '',
           fabric: '',
@@ -169,8 +148,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           neckType: '',
           biowash: false,
         })
-        setImageFile(null)
-        setPreviewUrl(null)
       }
     }
   }, [open, productToEdit, reset])
@@ -189,21 +166,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
     }
   }, [watchedName, setValue, watch, isEditing])
 
-  function handleFileSelected(file: File | null) {
-    if (!file) return
-    setImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
-  }
-
-  function removeImage() {
-    setImageFile(null)
-    setPreviewUrl(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
   function handleClose() {
-    setImageFile(null)
-    setPreviewUrl(null)
     reset()
     onClose()
   }
@@ -221,33 +184,19 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: values.productType,
           basePrice: values.basePrice,
           mrp: values.mrp,
-          badge: values.badge || undefined,
           status: values.status,
         },
         {
-          onSuccess: (product) => {
-            if (!imageFile) {
-              toast.success('Product created successfully')
-              handleClose()
-              return
-            }
-            uploadImageMutation.mutate(
-              { productId: product.id, file: imageFile },
-              {
-                onSettled: () => {
-                  toast.success('Product created with image')
-                  handleClose()
-                },
-              }
-            )
+          onSuccess: () => {
+            toast.success('Product created successfully — add colors, sizes and photos next')
+            handleClose()
           },
         }
       )
     }
   }
 
-  const isSubmitting =
-    createMutation.isPending || updateMutation.isPending || uploadImageMutation.isPending
+  const isSubmitting = createMutation.isPending || updateMutation.isPending
 
   const discountPercent =
     watchedMrp && watchedBasePrice && watchedMrp > watchedBasePrice
@@ -256,9 +205,8 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
 
   const tabs = [
     { id: 'general', label: 'Basic Info', icon: PackageIcon, hasError: !!(errors.name || errors.productType) },
-    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.badge || errors.categoryId) },
+    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.categoryId) },
     { id: 'specs', label: 'Specifications', icon: TShirtIcon, hasError: !!(errors.gsm || errors.fabric) },
-    { id: 'media', label: 'Primary Media', icon: Image01Icon, hasError: false },
   ] as const
 
   return (
@@ -348,21 +296,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
-                  <option value="">None</option>
-                  {BADGE_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </Select>
-                <p className="text-xs text-black/50 dark:text-white/50">
-                  Shown as a small tag on the storefront.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2 border-t border-black/10 dark:border-white/10">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Select label="Category" {...register('categoryId')} error={errors.categoryId?.message}>
                   <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a Category'}</option>
                   {categoriesData?.items.map((cat) => (
@@ -434,61 +368,6 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
             </div>
           )}
 
-          {/* TAB 4: PRIMARY MEDIA */}
-          {activeTab === 'media' && (
-            <div className="space-y-4 animate-in fade-in duration-200">
-              {previewUrl ? (
-                <div className="relative overflow-hidden rounded-xl border border-black/10 bg-gray-100 dark:border-white/10 dark:bg-gray-900 max-w-md mx-auto">
-                  <img src={previewUrl} alt="Preview" className="h-56 w-full object-cover" />
-                  {!isEditing && (
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute right-3 top-3 rounded-lg bg-black/80 p-1.5 text-white hover:bg-black cursor-pointer"
-                    >
-                      <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                    </button>
-                  )}
-                </div>
-              ) : (
-                <div
-                  onDragOver={(e) => {
-                    e.preventDefault()
-                    setDragActive(true)
-                  }}
-                  onDragLeave={() => setDragActive(false)}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setDragActive(false)
-                    if (e.dataTransfer.files?.[0]) handleFileSelected(e.dataTransfer.files[0])
-                  }}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`flex h-56 flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-colors ${
-                    dragActive
-                      ? 'border-black bg-black/5 dark:border-white dark:bg-white/10'
-                      : 'border-black/15 hover:border-black/40 dark:border-white/20 dark:hover:border-white/50'
-                  }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileSelected(e.target.files?.[0] ?? null)}
-                    className="hidden"
-                  />
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-black dark:text-white mb-3">
-                    <HugeiconsIcon icon={Upload01Icon} size={24} />
-                  </div>
-                  <p className="text-sm font-semibold text-black dark:text-white">
-                    Click or drag primary image here
-                  </p>
-                  <p className="mt-1 text-xs text-black/40 dark:text-white/40">
-                    Supports PNG, JPG, WEBP formats
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Modal Action Buttons Footer */}
@@ -541,7 +420,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
               <Button
                 type="button"
                 variant="secondary"
-                disabled={activeTab === 'media'}
+                disabled={activeTab === 'specs'}
                 onClick={() => {
                   const idx = tabs.findIndex((t) => t.id === activeTab)
                   if (idx < tabs.length - 1) setActiveTab(tabs[idx + 1].id)

@@ -1,11 +1,6 @@
 import { useState } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
-import {
-  Add01Icon,
-  Edit02Icon,
-  Image01Icon,
-  Layers01Icon,
-} from '@hugeicons/core-free-icons'
+import { Add01Icon, Edit02Icon, Image01Icon } from '@hugeicons/core-free-icons'
 import { Drawer } from '../../components/Drawer'
 import { Button } from '../../components/Button'
 import { Skeleton } from '../../components/Skeleton'
@@ -15,10 +10,9 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { StatusBadge } from '../../components/Badge'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { useProduct } from './hooks/useProducts'
-import { useProductImages } from './hooks/useProductImages'
-import { ImageManager } from './ImageManager'
+import { useProductImages, useUploadProductImage } from './hooks/useProductImages'
 import { VariantTable } from './VariantTable'
-import { VariantForm, type VariantFormValues } from './VariantForm'
+import { VariantForm, type ColorImageFiles, COLOR_IMAGE_SLOTS, type VariantFormValues } from './VariantForm'
 import { ProductFormModal } from './ProductFormModal'
 import {
   useCreateProductVariant,
@@ -33,13 +27,10 @@ interface ProductDetailDrawerProps {
   onClose: () => void
 }
 
-type TabType = 'variants' | 'images'
-
 export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerProps) {
   const open = Boolean(productId)
   const id = productId ?? ''
 
-  const [activeTab, setActiveTab] = useState<TabType>('variants')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
 
   const { data: product, isLoading, isError, error, refetch } = useProduct(id)
@@ -53,15 +44,11 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
   const createVariant = useCreateProductVariant(id)
   const updateVariant = useUpdateProductVariant(id)
   const deleteVariant = useDeleteProductVariant(id)
+  const uploadImage = useUploadProductImage(id)
 
   const primaryImage = images?.find((img) => img.isPrimary) ?? images?.[0]
   const totalStock = variants?.reduce((acc, v) => acc + v.stockQuantity, 0) ?? 0
   const variantCount = variants?.length ?? 0
-  const imageCount = images?.length ?? 0
-
-  const productColors = Array.from(
-    new Map((variants ?? []).filter((v) => v.color).map((v) => [v.color!.id, v.color!])).values()
-  )
 
   function openCreateVariant() {
     setEditingVariant(null)
@@ -73,22 +60,49 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
     setVariantFormOpen(true)
   }
 
-  function handleVariantSubmit(values: VariantFormValues) {
+  // This product's very first image becomes its catalog thumbnail; a later
+  // color's hero shot is still a real product photo, just not the one shown
+  // on listing pages.
+  function uploadColorImages(colorId: string, colorImages: ColorImageFiles) {
+    const hasAnyImageYet = (images?.length ?? 0) > 0
+    COLOR_IMAGE_SLOTS.forEach((slot, index) => {
+      const file = colorImages[slot.key]
+      if (!file) return
+      uploadImage.mutate({
+        file,
+        colorId,
+        imageType: 'PRODUCT',
+        sortOrder: index,
+        isPrimary: slot.key === 'hero' && !hasAnyImageYet,
+      })
+    })
+  }
+
+  function handleVariantSubmit(values: VariantFormValues, colorImages: ColorImageFiles) {
     const input = {
       colorId: values.colorId,
       sizeId: values.sizeId,
       sku: values.sku || undefined,
       price: values.price ? Number(values.price) : null,
       stockQuantity: values.stockQuantity,
-      status: values.status,
     }
     if (editingVariant) {
       updateVariant.mutate(
         { variantId: editingVariant.id, input },
-        { onSuccess: () => setVariantFormOpen(false) }
+        {
+          onSuccess: () => {
+            uploadColorImages(values.colorId, colorImages)
+            setVariantFormOpen(false)
+          },
+        }
       )
     } else {
-      createVariant.mutate(input, { onSuccess: () => setVariantFormOpen(false) })
+      createVariant.mutate(input, {
+        onSuccess: () => {
+          uploadColorImages(values.colorId, colorImages)
+          setVariantFormOpen(false)
+        },
+      })
     }
   }
 
@@ -191,73 +205,31 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
             </div>
           </div>
 
-          {/* Navigation Tabs */}
-          <div className="flex overflow-x-auto border-b border-black/10 no-scrollbar dark:border-white/10">
-            <button
-              onClick={() => setActiveTab('variants')}
-              className={`flex items-center gap-2 shrink-0 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'variants'
-                  ? 'border-black text-black dark:border-white dark:text-white'
-                  : 'border-transparent text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white'
-              }`}
-            >
-              <HugeiconsIcon icon={Layers01Icon} size={16} />
-              Variants ({variantCount})
-            </button>
-            <button
-              onClick={() => setActiveTab('images')}
-              className={`flex items-center gap-2 shrink-0 border-b-2 px-4 py-2.5 text-xs font-bold transition-colors cursor-pointer ${
-                activeTab === 'images'
-                  ? 'border-black text-black dark:border-white dark:text-white'
-                  : 'border-transparent text-black/50 hover:text-black dark:text-white/50 dark:hover:text-white'
-              }`}
-            >
-              <HugeiconsIcon icon={Image01Icon} size={16} />
-              Gallery ({imageCount})
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === 'variants' && (
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-black/80 dark:text-white/80">
-                    Product Variants
-                  </h3>
-                  <p className="text-xs text-black/50 dark:text-white/50">
-                    Manage colors, sizes, pricing overrides, and inventory stock levels.
-                  </p>
-                </div>
-                <Button className="px-3 py-1.5 text-xs shadow-xs" onClick={openCreateVariant}>
-                  <HugeiconsIcon icon={Add01Icon} size={15} />
-                  Add Variant
-                </Button>
-              </div>
-
-              <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
-                <VariantTable
-                  variants={variants ?? []}
-                  onEdit={openEditVariant}
-                  onDelete={setDeletingVariant}
-                />
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'images' && (
-            <div className="flex flex-col gap-4">
+          {/* Variants */}
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center justify-between border-b border-black/10 pb-3 dark:border-white/10">
               <div>
                 <h3 className="text-sm font-semibold text-black/80 dark:text-white/80">
-                  Media Gallery
+                  Product Variants
                 </h3>
                 <p className="text-xs text-black/50 dark:text-white/50">
-                  Upload images and set primary thumbnail for catalog display.
+                  Manage colors, sizes, pricing overrides, and inventory stock levels.
                 </p>
               </div>
-              <ImageManager productId={id} colors={productColors} />
+              <Button className="px-3 py-1.5 text-xs shadow-xs" onClick={openCreateVariant}>
+                <HugeiconsIcon icon={Add01Icon} size={15} />
+                Add Variant
+              </Button>
             </div>
-          )}
+
+            <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
+              <VariantTable
+                variants={variants ?? []}
+                onEdit={openEditVariant}
+                onDelete={setDeletingVariant}
+              />
+            </div>
+          </div>
 
           {/* Variant Form Modal */}
           <Modal
@@ -267,6 +239,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
           >
             <VariantForm
               initialValues={editingVariant ?? undefined}
+              existingImages={images ?? []}
               onSubmit={handleVariantSubmit}
               isSubmitting={createVariant.isPending || updateVariant.isPending}
               onCancel={() => setVariantFormOpen(false)}

@@ -16,6 +16,7 @@ export interface UploadProductImageInput {
   imageType?: ImageType
   isPrimary?: boolean
   colorId?: string
+  sortOrder?: number
 }
 
 export async function uploadProductImage(productId: string, input: UploadProductImageInput) {
@@ -24,6 +25,7 @@ export async function uploadProductImage(productId: string, input: UploadProduct
   if (input.imageType) formData.append('imageType', input.imageType)
   if (input.isPrimary !== undefined) formData.append('isPrimary', String(input.isPrimary))
   if (input.colorId) formData.append('colorId', input.colorId)
+  if (input.sortOrder !== undefined) formData.append('sortOrder', String(input.sortOrder))
 
   // Unset the instance's default JSON Content-Type so axios sends this as
   // multipart/form-data with the correct boundary instead of JSON-stringifying the FormData.

@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { HugeiconsIcon } from '@hugeicons/react'
 import {
-  Image01Icon,
-  Upload01Icon,
-  Cancel01Icon,
+  Layers01Icon,
   Coins01Icon,
   PackageIcon,
   ArrowRight01Icon,
@@ -20,11 +17,9 @@ import { PageHeader } from '../components/PageHeader'
 import { Input } from '../components/Input'
 import { Textarea } from '../components/Textarea'
 import { Select } from '../components/Select'
-import { BADGE_OPTIONS } from '../utils/constants'
 import { Button } from '../components/Button'
 import { useCreateProduct } from '../features/products/hooks/useProducts'
 import { useAllCategories } from '../features/categories/hooks/useAllCategories'
-import { uploadProductImage } from '../services/productImage.service'
 import { formatCurrency } from '../utils/formatCurrency'
 import { toast } from '../lib/toast'
 
@@ -36,7 +31,6 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
-  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
     .string()
@@ -56,7 +50,7 @@ const STEPS = [
   { id: 1, title: 'Basic Info', description: 'Title, description & type', icon: PackageIcon },
   { id: 2, title: 'Specifications', description: 'Fabric, fit & construction', icon: TShirtIcon },
   { id: 3, title: 'Pricing & Value', description: 'Base price & MRP', icon: Coins01Icon },
-  { id: 4, title: 'Media & Category', description: 'Images & publication status', icon: Image01Icon },
+  { id: 4, title: 'Category & Status', description: 'Catalog placement & publication', icon: Layers01Icon },
 ]
 
 const STEP_FIELDS: Partial<Record<number, (keyof ProductFormValues)[]>> = {
@@ -69,16 +63,6 @@ export function ProductNewPage() {
   const createMutation = useCreateProduct()
   const { data: categoriesData, isLoading: categoriesLoading } = useAllCategories()
   const [currentStep, setCurrentStep] = useState<number>(1)
-
-  const uploadImageMutation = useMutation({
-    mutationFn: ({ productId, file }: { productId: string; file: File }) =>
-      uploadProductImage(productId, { file, imageType: 'PRODUCT', isPrimary: true }),
-  })
-
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  const [dragActive, setDragActive] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -97,7 +81,6 @@ export function ProductNewPage() {
       productType: '',
       basePrice: 0,
       mrp: 0,
-      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -122,39 +105,6 @@ export function ProductNewPage() {
     }
   }, [watchedName, setValue, watch])
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
-    }
-  }, [previewUrl])
-
-  function handleFileSelected(file: File | null) {
-    if (!file) return
-    setImageFile(file)
-    setPreviewUrl(URL.createObjectURL(file))
-  }
-
-  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0] ?? null
-    handleFileSelected(selected)
-  }
-
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    setDragActive(false)
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileSelected(e.dataTransfer.files[0])
-    }
-  }
-
-  function removeImage() {
-    setImageFile(null)
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewUrl(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
   async function handleNextStep() {
     const fields = STEP_FIELDS[currentStep]
     const isValid = !fields || (await trigger(fields))
@@ -177,7 +127,6 @@ export function ProductNewPage() {
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
-        badge: values.badge || undefined,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -186,28 +135,15 @@ export function ProductNewPage() {
         biowash: values.biowash ?? false,
       },
       {
-        onSuccess: (product) => {
-          if (!imageFile) {
-            toast.success('Product created successfully')
-            navigate('/products')
-            return
-          }
-          uploadImageMutation.mutate(
-            { productId: product.id, file: imageFile },
-            {
-              onError: (error) => toast.fromError(error, 'Product created, but image upload failed'),
-              onSettled: () => {
-                toast.success('Product and image saved successfully')
-                navigate('/products')
-              },
-            }
-          )
+        onSuccess: () => {
+          toast.success('Product created successfully — add colors, sizes and photos next')
+          navigate('/products')
         },
       }
     )
   }
 
-  const isSubmitting = createMutation.isPending || uploadImageMutation.isPending
+  const isSubmitting = createMutation.isPending
 
   const discountPercent =
     watchedMrp && watchedBasePrice && watchedMrp > watchedBasePrice
@@ -471,17 +407,6 @@ export function ProductNewPage() {
                   />
                 </div>
 
-                <div className="mt-5">
-                  <Select label="Badge" {...register('badge')} error={errors.badge?.message}>
-                    <option value="">None</option>
-                    {BADGE_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
                 {watchedBasePrice > 0 && watchedMrp > 0 && (
                   <div className="mt-5 flex items-center justify-between rounded-xl border border-black/10 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5 text-xs">
                     <span className="text-black/60 dark:text-white/60">Customer Offer Summary:</span>
@@ -498,92 +423,34 @@ export function ProductNewPage() {
               <div className="animate-in fade-in slide-in-from-right-4 duration-300 rounded-2xl border border-black/10 bg-white p-6 shadow-2xs dark:border-white/10 dark:bg-black">
                 <div className="mb-5 flex items-center gap-2.5 border-b border-black/10 pb-3.5 dark:border-white/10">
                   <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-black/5 text-black dark:bg-white/10 dark:text-white">
-                    <HugeiconsIcon icon={Image01Icon} size={20} />
+                    <HugeiconsIcon icon={Layers01Icon} size={20} />
                   </div>
                   <div>
                     <h2 className="text-sm font-bold uppercase tracking-wider text-black dark:text-white">
-                      Step 4: Primary Media & Store Organization
+                      Step 4: Category & Publication Status
                     </h2>
                     <p className="text-xs text-black/50 dark:text-white/50">
-                      Upload product hero image and select catalog category.
+                      Colors, sizes and photos are added next, from the product's variants.
                     </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                  {/* Media Uploader */}
-                  <div>
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wider text-black/70 dark:text-white/70">
-                      Primary Media Image
-                    </p>
-                    {previewUrl ? (
-                      <div className="relative overflow-hidden rounded-xl border border-black/10 bg-gray-100 dark:border-white/10 dark:bg-gray-800">
-                        <img src={previewUrl} alt="Product Preview" className="h-52 w-full object-cover" />
-                        <button
-                          type="button"
-                          onClick={removeImage}
-                          className="absolute right-2.5 top-2.5 rounded-lg bg-black/80 p-1.5 text-white backdrop-blur-xs hover:bg-black dark:bg-white/90 dark:text-black cursor-pointer"
-                          aria-label="Remove image"
-                        >
-                          <HugeiconsIcon icon={Cancel01Icon} size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div
-                        onDragOver={(e) => {
-                          e.preventDefault()
-                          setDragActive(true)
-                        }}
-                        onDragLeave={() => setDragActive(false)}
-                        onDrop={handleDrop}
-                        onClick={() => fileInputRef.current?.click()}
-                        className={`flex h-52 flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 text-center transition-colors cursor-pointer ${
-                          dragActive
-                            ? 'border-black bg-black/5 dark:border-white dark:bg-white/10'
-                            : 'border-black/15 hover:border-black/40 dark:border-white/20 dark:hover:border-white/50'
-                        }`}
-                      >
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                          className="hidden"
-                        />
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 dark:bg-white/10 text-black dark:text-white mb-2">
-                          <HugeiconsIcon icon={Upload01Icon} size={20} />
-                        </div>
-                        <p className="text-xs font-semibold text-black dark:text-white">
-                          Click or drag image
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-black/40 dark:text-white/40">
-                          PNG, JPG, WEBP
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <Select label="Category" {...register('categoryId')} error={errors.categoryId?.message}>
+                    <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
+                    {categoriesData?.items.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </Select>
 
-                  {/* Organization Selects */}
-                  <div className="flex flex-col gap-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-black/70 dark:text-white/70">
-                      Catalog Options
-                    </p>
-                    <Select label="Category" {...register('categoryId')} error={errors.categoryId?.message}>
-                      <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
-                      {categoriesData?.items.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </Select>
-
-                    <Select label="Publication Status" {...register('status')} error={errors.status?.message}>
-                      <option value="DRAFT">Draft</option>
-                      <option value="LAUNCHING_SOON">Launching Soon</option>
-                      <option value="ACTIVE">Active</option>
-                      <option value="INACTIVE">Inactive</option>
-                    </Select>
-                  </div>
+                  <Select label="Publication Status" {...register('status')} error={errors.status?.message}>
+                    <option value="DRAFT">Draft</option>
+                    <option value="LAUNCHING_SOON">Launching Soon</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </Select>
                 </div>
               </div>
             )}
