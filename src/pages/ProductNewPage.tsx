@@ -136,7 +136,7 @@ export function ProductNewPage() {
       },
       {
         onSuccess: () => {
-          toast.success('Product created successfully — add colors, sizes and photos next')
+          toast.success('Product created successfully — add sizes, colors (optional) and photos next')
           navigate('/products')
         },
       }

@@ -12,7 +12,7 @@ import { useAllSizes } from '../sizes/hooks/useAllSizes'
 import type { ProductImage, ProductVariant } from '../../types'
 
 const schema = z.object({
-  colorId: z.string().min(1, 'Color is required'),
+  colorId: z.string().optional(),
   sizeId: z.string().min(1, 'Size is required'),
   sku: z.string().optional(),
   price: z
@@ -99,7 +99,7 @@ export function VariantForm({ initialValues, existingImages, onSubmit, isSubmitt
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="colorId" className="text-sm font-medium text-black/80 dark:text-white/80">
-            Color
+            Color <span className="text-xs font-normal text-black/40 dark:text-white/40">(Optional)</span>
           </label>
           <div className="relative">
             <Select
@@ -108,7 +108,7 @@ export function VariantForm({ initialValues, existingImages, onSubmit, isSubmitt
               error={errors.colorId?.message}
               className={selectedColor ? 'pl-8' : undefined}
             >
-              <option value="">{colorsLoading ? 'Loading…' : 'Select a color'}</option>
+              <option value="">{colorsLoading ? 'Loading…' : 'No Color (Universal)'}</option>
               {colorsData?.items.map((color) => (
                 <option key={color.id} value={color.id} style={{ backgroundColor: color.hexCode }}>
                   ⬤ {color.name}

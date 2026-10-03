@@ -80,7 +80,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
 
   function handleVariantSubmit(values: VariantFormValues, colorImages: ColorImageFiles) {
     const input = {
-      colorId: values.colorId,
+      colorId: values.colorId || undefined,
       sizeId: values.sizeId,
       sku: values.sku || undefined,
       price: values.price ? Number(values.price) : null,
@@ -91,7 +91,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
         { variantId: editingVariant.id, input },
         {
           onSuccess: () => {
-            uploadColorImages(values.colorId, colorImages)
+            if (values.colorId) uploadColorImages(values.colorId, colorImages)
             setVariantFormOpen(false)
           },
         }
@@ -99,7 +99,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
     } else {
       createVariant.mutate(input, {
         onSuccess: () => {
-          uploadColorImages(values.colorId, colorImages)
+          if (values.colorId) uploadColorImages(values.colorId, colorImages)
           setVariantFormOpen(false)
         },
       })

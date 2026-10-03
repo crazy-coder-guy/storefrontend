@@ -170,7 +170,7 @@ export interface ProductImageInput {
 export interface ProductVariant {
   id: string
   productId: string
-  colorId: string
+  colorId: string | null
   sizeId: string
   sku: string
   price: number | null
@@ -179,12 +179,12 @@ export interface ProductVariant {
   status: EntityStatus
   createdAt: string
   updatedAt: string
-  color?: Color
+  color?: Color | null
   size?: Size
 }
 
 export interface ProductVariantInput {
-  colorId: string
+  colorId?: string | null
   sizeId: string
   sku?: string
   price?: number | null
