@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { PageHeader } from '../components/PageHeader'
 import { Skeleton } from '../components/Skeleton'
 import { ErrorState } from '../components/ErrorState'
+import { Button } from '../components/Button'
 import { StorefrontSettingsForm } from '../features/storefront/StorefrontSettingsForm'
 import { FeaturedProductsPicker } from '../features/storefront/FeaturedProductsPicker'
+import { MaintenanceModal } from '../features/storefront/MaintenanceModal'
 import {
   useStorefrontSettings,
   useUpdateStorefrontSettings,
@@ -16,6 +18,8 @@ import { HugeiconsIcon } from '@hugeicons/react'
 import {
   Layout01Icon,
   StarIcon,
+  Alert02Icon,
+  Clock01Icon,
 } from '@hugeicons/core-free-icons'
 import { cn } from '../utils/cn'
 
@@ -23,12 +27,18 @@ type TabType = 'homepage' | 'featured'
 
 export function StorefrontContentPage() {
   const [activeTab, setActiveTab] = useState<TabType>('homepage')
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false)
 
   const settingsQuery = useStorefrontSettings()
   const updateSettings = useUpdateStorefrontSettings()
 
   const featuredQuery = useFeaturedProducts()
   const setFeatured = useSetFeaturedProducts()
+
+  const isMaintenanceActive = Boolean(
+    settingsQuery.data?.isMaintenance &&
+      (!settingsQuery.data.maintenanceUntil || new Date(settingsQuery.data.maintenanceUntil) > new Date())
+  )
 
   const tabs = [
     {
@@ -51,6 +61,57 @@ export function StorefrontContentPage() {
       <PageHeader
         title="Storefront Content"
         description="Manage the copy and featured products shown on the customer-facing website."
+        actions={
+          <Button
+            variant={isMaintenanceActive ? 'danger' : 'secondary'}
+            onClick={() => setIsMaintenanceModalOpen(true)}
+            className="gap-2 font-semibold"
+          >
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full',
+                isMaintenanceActive ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
+              )}
+            />
+            <HugeiconsIcon icon={isMaintenanceActive ? Alert02Icon : Clock01Icon} size={16} />
+            {isMaintenanceActive ? 'Maintenance Mode Active' : 'Maintenance Mode'}
+          </Button>
+        }
+      />
+
+      {/* Prominent Banner if Maintenance is currently active */}
+      {isMaintenanceActive && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+          <div className="flex items-start sm:items-center gap-3">
+            <span className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-300 shrink-0">
+              <HugeiconsIcon icon={Alert02Icon} size={20} />
+            </span>
+            <div className="space-y-0.5">
+              <p className="text-sm font-bold">Storefront Maintenance Mode is Currently ON</p>
+              <p className="text-xs text-amber-800/80 dark:text-amber-300/80">
+                Shoppers are seeing the maintenance countdown page.
+                {settingsQuery.data?.maintenanceUntil && (
+                  <span className="font-semibold ml-1">
+                    Auto turns off at {new Date(settingsQuery.data.maintenanceUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} ({new Date(settingsQuery.data.maintenanceUntil).toLocaleDateString()}).
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="secondary"
+            className="border-amber-500/30 bg-white/50 dark:bg-black/30 hover:bg-white dark:hover:bg-black/60 shrink-0 font-medium"
+            onClick={() => setIsMaintenanceModalOpen(true)}
+          >
+            Manage Maintenance
+          </Button>
+        </div>
+      )}
+
+      <MaintenanceModal
+        open={isMaintenanceModalOpen}
+        onClose={() => setIsMaintenanceModalOpen(false)}
+        settings={settingsQuery.data}
       />
 
       {/* Segmented Tab Navigation Bar */}

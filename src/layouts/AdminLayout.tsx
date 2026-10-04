@@ -10,6 +10,8 @@ import {
 import { Sidebar } from '../components/Sidebar'
 import { useTheme } from '../context/ThemeContext'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useStorefrontSettings } from '../features/storefront/hooks/useStorefrontSettings'
+import { MaintenanceModal } from '../features/storefront/MaintenanceModal'
 import { cn } from '../utils/cn'
 
 const ROUTE_TITLES: Array<{ test: RegExp; title: string }> = [
@@ -38,6 +40,15 @@ export function AdminLayout() {
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(COLLAPSE_KEY) === 'true')
+  const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false)
+
+  const settingsQuery = useStorefrontSettings()
+  const settings = settingsQuery.data
+
+  const isMaintenanceActive = Boolean(
+    settings?.isMaintenance &&
+      (!settings.maintenanceUntil || new Date(settings.maintenanceUntil) > new Date())
+  )
 
   useEffect(() => {
     localStorage.setItem(COLLAPSE_KEY, String(collapsed))
@@ -76,7 +87,7 @@ export function AdminLayout() {
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-black/10 px-4 py-3 dark:border-white/10">
+        <header className="flex items-center justify-between border-b border-black/10 px-4 py-2.5 dark:border-white/10">
           <div className="flex items-center gap-3">
             {isDesktop ? (
               <button
@@ -98,16 +109,48 @@ export function AdminLayout() {
             <h1 className="text-base font-semibold">{title}</h1>
           </div>
 
-          <button
-            onClick={toggleTheme}
-            className="rounded-lg p-2 text-black/70 hover:bg-black/5 dark:text-white/70 dark:hover:bg-white/10 transition-transform duration-200 active:scale-90"
-            aria-label="Toggle theme"
-          >
-            <div className="transition-transform duration-300 hover:rotate-45">
-              <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} size={20} />
-            </div>
-          </button>
+          <div className="flex items-center gap-2.5">
+            {/* Maintenance Mode Button / Status Badge */}
+            <button
+              type="button"
+              onClick={() => setIsMaintenanceModalOpen(true)}
+              className={cn(
+                'inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs',
+                isMaintenanceActive
+                  ? 'border border-amber-500/40 bg-amber-500/15 text-amber-800 hover:bg-amber-500/25 dark:border-amber-400/40 dark:bg-amber-400/20 dark:text-amber-300'
+                  : 'border border-black/10 bg-gray-50 text-black/70 hover:bg-black/5 hover:text-black dark:border-white/10 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white'
+              )}
+              title="Configure Storefront Maintenance Mode"
+            >
+              <span
+                className={cn(
+                  'h-2 w-2 rounded-full shrink-0',
+                  isMaintenanceActive ? 'bg-amber-500 animate-ping' : 'bg-emerald-500'
+                )}
+              />
+              <span className="truncate">
+                {isMaintenanceActive ? 'Maintenance: Active' : 'Store: Live'}
+              </span>
+            </button>
+
+            <button
+              onClick={toggleTheme}
+              className="rounded-lg p-2 text-black/70 hover:bg-black/5 dark:text-white/70 dark:hover:bg-white/10 transition-transform duration-200 active:scale-90"
+              aria-label="Toggle theme"
+            >
+              <div className="transition-transform duration-300 hover:rotate-45">
+                <HugeiconsIcon icon={theme === 'dark' ? Sun03Icon : Moon02Icon} size={20} />
+              </div>
+            </button>
+          </div>
         </header>
+
+        {/* Maintenance Configuration Modal */}
+        <MaintenanceModal
+          open={isMaintenanceModalOpen}
+          onClose={() => setIsMaintenanceModalOpen(false)}
+          settings={settings}
+        />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <Outlet />
