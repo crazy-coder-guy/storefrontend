@@ -182,9 +182,9 @@ export interface ProductVariant {
   color?: Color | null
   size?: Size
   // Per-size garment measurements (inches)
-  chestWidth?: number | null
-  bodyLength?: number | null
-  sleeveLength?: number | null
+  chestWidth?: number | string | null
+  bodyLength?: number | string | null
+  sleeveLength?: number | string | null
 }
 
 export interface ProductVariantInput {
@@ -196,9 +196,9 @@ export interface ProductVariantInput {
   badge?: string | null
   status?: EntityStatus
   // Per-size garment measurements (inches)
-  chestWidth?: number | null
-  bodyLength?: number | null
-  sleeveLength?: number | null
+  chestWidth?: number | string | null
+  bodyLength?: number | string | null
+  sleeveLength?: number | string | null
 }
 
 export interface ProductDetail extends Product {

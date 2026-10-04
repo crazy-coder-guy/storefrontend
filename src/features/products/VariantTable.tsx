@@ -88,17 +88,6 @@ export function VariantTable({
           className: 'text-right',
           render: (row) => (
             <div className="flex items-center justify-end gap-1.5">
-              {onManagePhotos && (
-                <button
-                  type="button"
-                  onClick={() => onManagePhotos(row)}
-                  className="inline-flex items-center gap-1 rounded-md border border-black/10 bg-white px-2 py-1 text-xs font-medium text-black/80 hover:bg-black/5 hover:text-black shadow-2xs cursor-pointer dark:border-white/10 dark:bg-black dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
-                  title="View and edit photos"
-                >
-                  <HugeiconsIcon icon={Image01Icon} size={13} />
-                  <span>Photos</span>
-                </button>
-              )}
               <button
                 type="button"
                 onClick={() => onEdit(row)}
