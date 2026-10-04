@@ -10,9 +10,16 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { StatusBadge } from '../../components/Badge'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { useProduct } from './hooks/useProducts'
-import { useProductImages, useUploadProductImage } from './hooks/useProductImages'
+import { useProductImages, useUploadProductImage, useDeleteProductImage } from './hooks/useProductImages'
 import { VariantTable } from './VariantTable'
-import { VariantForm, type ColorImageFiles, COLOR_IMAGE_SLOTS, type VariantFormValues } from './VariantForm'
+import {
+  VariantForm,
+  type ColorImageFiles,
+  COLOR_IMAGE_SLOTS,
+  type ColorImageSlotKey,
+  type VariantFormValues,
+} from './VariantForm'
+import { VariantPhotosModal } from './VariantPhotosModal'
 import { ProductFormModal } from './ProductFormModal'
 import {
   useCreateProductVariant,
@@ -40,11 +47,13 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
   const [variantFormOpen, setVariantFormOpen] = useState(false)
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null)
   const [deletingVariant, setDeletingVariant] = useState<ProductVariant | null>(null)
+  const [photosVariant, setPhotosVariant] = useState<ProductVariant | null>(null)
 
   const createVariant = useCreateProductVariant(id)
   const updateVariant = useUpdateProductVariant(id)
   const deleteVariant = useDeleteProductVariant(id)
   const uploadImage = useUploadProductImage(id)
+  const deleteImage = useDeleteProductImage(id)
 
   const primaryImage = images?.find((img) => img.isPrimary) ?? images?.[0]
   const totalStock = variants?.reduce((acc, v) => acc + v.stockQuantity, 0) ?? 0
@@ -60,49 +69,67 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
     setVariantFormOpen(true)
   }
 
-  // This product's very first image becomes its catalog thumbnail; a later
-  // color's hero shot is still a real product photo, just not the one shown
-  // on listing pages.
-  function uploadColorImages(colorId: string, colorImages: ColorImageFiles) {
-    const hasAnyImageYet = (images?.length ?? 0) > 0
-    COLOR_IMAGE_SLOTS.forEach((slot, index) => {
-      const file = colorImages[slot.key]
-      if (!file) return
-      uploadImage.mutate({
-        file,
-        colorId,
-        imageType: 'PRODUCT',
-        sortOrder: index,
-        isPrimary: slot.key === 'hero' && !hasAnyImageYet,
-      })
-    })
-  }
-
-  function handleVariantSubmit(values: VariantFormValues, colorImages: ColorImageFiles) {
+  async function handleVariantSubmit(
+    values: VariantFormValues,
+    colorImages: ColorImageFiles,
+    replacedImageIds: Partial<Record<ColorImageSlotKey, string>> = {},
+    deletedImageIds: string[] = []
+  ) {
     const input = {
       colorId: values.colorId || undefined,
       sizeId: values.sizeId,
       sku: values.sku || undefined,
       price: values.price ? Number(values.price) : null,
       stockQuantity: values.stockQuantity,
+      chestWidth: values.chestWidth !== '' && values.chestWidth != null ? Number(values.chestWidth) : null,
+      bodyLength: values.bodyLength !== '' && values.bodyLength != null ? Number(values.bodyLength) : null,
+      sleeveLength: values.sleeveLength !== '' && values.sleeveLength != null ? Number(values.sleeveLength) : null,
     }
+
+    const processImagesAndClose = async () => {
+      // 1. Delete any images marked for deletion
+      for (const delId of deletedImageIds) {
+        try {
+          await deleteImage.mutateAsync(delId)
+        } catch (e) {
+          console.error('Failed to delete image', e)
+        }
+      }
+
+      // 2. Upload any new or replacement files
+      const hasAnyImageYet = (images?.length ?? 0) > 0
+      for (let index = 0; index < COLOR_IMAGE_SLOTS.length; index++) {
+        const slot = COLOR_IMAGE_SLOTS[index]
+        const file = colorImages[slot.key]
+        if (!file) continue
+
+        const replacedOldId = replacedImageIds[slot.key]
+        try {
+          await uploadImage.mutateAsync({
+            file,
+            colorId: values.colorId || undefined,
+            imageType: 'PRODUCT',
+            sortOrder: index,
+            isPrimary: slot.key === 'hero' && !hasAnyImageYet,
+          })
+          if (replacedOldId) {
+            await deleteImage.mutateAsync(replacedOldId)
+          }
+        } catch (e) {
+          console.error('Failed to upload/replace slot image', e)
+        }
+      }
+
+      setVariantFormOpen(false)
+    }
+
     if (editingVariant) {
       updateVariant.mutate(
         { variantId: editingVariant.id, input },
-        {
-          onSuccess: () => {
-            if (values.colorId) uploadColorImages(values.colorId, colorImages)
-            setVariantFormOpen(false)
-          },
-        }
+        { onSuccess: processImagesAndClose }
       )
     } else {
-      createVariant.mutate(input, {
-        onSuccess: () => {
-          if (values.colorId) uploadColorImages(values.colorId, colorImages)
-          setVariantFormOpen(false)
-        },
-      })
+      createVariant.mutate(input, { onSuccess: processImagesAndClose })
     }
   }
 
@@ -225,8 +252,10 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
             <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
               <VariantTable
                 variants={variants ?? []}
+                images={images ?? []}
                 onEdit={openEditVariant}
                 onDelete={setDeletingVariant}
+                onManagePhotos={(v) => setPhotosVariant(v)}
               />
             </div>
           </div>
@@ -243,8 +272,25 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
               onSubmit={handleVariantSubmit}
               isSubmitting={createVariant.isPending || updateVariant.isPending}
               onCancel={() => setVariantFormOpen(false)}
+              onOpenPhotosModal={
+                editingVariant
+                  ? () => {
+                      setVariantFormOpen(false)
+                      setPhotosVariant(editingVariant)
+                    }
+                  : undefined
+              }
             />
           </Modal>
+
+          {/* Variant Photos Management Modal */}
+          <VariantPhotosModal
+            open={!!photosVariant}
+            onClose={() => setPhotosVariant(null)}
+            productId={id}
+            variant={photosVariant}
+            existingImages={images ?? []}
+          />
 
           {/* Variant Confirm Deactivate Dialog */}
           <ConfirmDialog

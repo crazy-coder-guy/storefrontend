@@ -181,6 +181,10 @@ export interface ProductVariant {
   updatedAt: string
   color?: Color | null
   size?: Size
+  // Per-size garment measurements (inches)
+  chestWidth?: number | null
+  bodyLength?: number | null
+  sleeveLength?: number | null
 }
 
 export interface ProductVariantInput {
@@ -191,6 +195,10 @@ export interface ProductVariantInput {
   stockQuantity?: number
   badge?: string | null
   status?: EntityStatus
+  // Per-size garment measurements (inches)
+  chestWidth?: number | null
+  bodyLength?: number | null
+  sleeveLength?: number | null
 }
 
 export interface ProductDetail extends Product {

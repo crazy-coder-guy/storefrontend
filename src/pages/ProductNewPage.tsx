@@ -20,8 +20,9 @@ import { Select } from '../components/Select'
 import { Button } from '../components/Button'
 import { useCreateProduct } from '../features/products/hooks/useProducts'
 import { useAllCategories } from '../features/categories/hooks/useAllCategories'
-import { formatCurrency } from '../utils/formatCurrency'
 import { toast } from '../lib/toast'
+import { formatCurrency } from '../utils/formatCurrency'
+import { BADGE_OPTIONS } from '../utils/constants'
 
 const schema = z.object({
   name: z.string().min(1, 'Product name is required'),
@@ -31,6 +32,7 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
     .string()
@@ -81,6 +83,7 @@ export function ProductNewPage() {
       productType: '',
       basePrice: 0,
       mrp: 0,
+      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -127,6 +130,7 @@ export function ProductNewPage() {
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -435,12 +439,21 @@ export function ProductNewPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                   <Select label="Category" {...register('categoryId')} error={errors.categoryId?.message}>
                     <option value="">{categoriesLoading ? 'Loading categories…' : 'Select a category'}</option>
                     {categoriesData?.items.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}
+                      </option>
+                    ))}
+                  </Select>
+
+                  <Select label="Product Badge" {...register('badge')} error={errors.badge?.message}>
+                    <option value="">No Badge (Default)</option>
+                    {BADGE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt}
                       </option>
                     ))}
                   </Select>

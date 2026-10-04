@@ -22,6 +22,7 @@ import { useAllCategories } from '../categories/hooks/useAllCategories'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { toast } from '../../lib/toast'
 import * as productService from '../../services/product.service'
+import { BADGE_OPTIONS } from '../../utils/constants'
 import type { Product } from '../../types'
 
 const schema = z.object({
@@ -32,6 +33,7 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
     .string()
@@ -72,6 +74,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
         fabric: values.fabric || undefined,
@@ -104,6 +107,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
       productType: '',
       basePrice: 0,
       mrp: 0,
+      badge: '',
       status: 'DRAFT',
       gsm: '',
       fabric: '',
@@ -125,6 +129,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: productToEdit.productType ?? '',
           basePrice: productToEdit.basePrice ?? 0,
           mrp: productToEdit.mrp ?? 0,
+          badge: productToEdit.badge ?? '',
           status: productToEdit.status ?? 'DRAFT',
           gsm: productToEdit.gsm != null ? String(productToEdit.gsm) : '',
           fabric: productToEdit.fabric ?? '',
@@ -141,6 +146,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: '',
           basePrice: 0,
           mrp: 0,
+          badge: '',
           status: 'DRAFT',
           gsm: '',
           fabric: '',
@@ -184,7 +190,13 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: values.productType,
           basePrice: values.basePrice,
           mrp: values.mrp,
+          badge: values.badge || null,
           status: values.status,
+          gsm: values.gsm ? Number(values.gsm) : undefined,
+          fabric: values.fabric || undefined,
+          fit: values.fit || undefined,
+          neckType: values.neckType || undefined,
+          biowash: values.biowash ?? false,
         },
         {
           onSuccess: () => {
@@ -313,6 +325,19 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
                   <option value="INACTIVE">Inactive</option>
                 </Select>
               </div>
+
+              <Select
+                label="Badge"
+                {...register('badge')}
+                error={errors.badge?.message}
+              >
+                <option value="">None — No badge</option>
+                {BADGE_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt}>
+                    {opt}
+                  </option>
+                ))}
+              </Select>
             </div>
           )}
 
