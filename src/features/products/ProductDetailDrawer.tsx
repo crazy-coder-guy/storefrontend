@@ -84,6 +84,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
       chestWidth: values.chestWidth !== '' && values.chestWidth != null ? Number(values.chestWidth) : null,
       bodyLength: values.bodyLength !== '' && values.bodyLength != null ? Number(values.bodyLength) : null,
       sleeveLength: values.sleeveLength !== '' && values.sleeveLength != null ? Number(values.sleeveLength) : null,
+      shoulderWidth: values.shoulderWidth !== '' && values.shoulderWidth != null ? Number(values.shoulderWidth) : null,
     }
 
     const processImagesAndClose = async () => {

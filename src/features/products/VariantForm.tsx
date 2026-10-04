@@ -31,6 +31,7 @@ const schema = z.object({
   chestWidth: z.coerce.number().nonnegative().optional().or(z.literal('')),
   bodyLength: z.coerce.number().nonnegative().optional().or(z.literal('')),
   sleeveLength: z.coerce.number().nonnegative().optional().or(z.literal('')),
+  shoulderWidth: z.coerce.number().nonnegative().optional().or(z.literal('')),
 })
 
 export type VariantFormValues = z.output<typeof schema>
@@ -89,6 +90,7 @@ export function VariantForm({
       chestWidth: initialValues?.chestWidth ?? '',
       bodyLength: initialValues?.bodyLength ?? '',
       sleeveLength: initialValues?.sleeveLength ?? '',
+      shoulderWidth: initialValues?.shoulderWidth ?? '',
     },
   })
 
@@ -220,13 +222,13 @@ export function VariantForm({
         <p className="text-[11px] text-black/50 dark:text-white/50 mb-1">
           These measurements are specific to this size variant. Leave blank if you don't have exact data yet.
         </p>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <Input
             label="Chest Width"
             type="number"
             step="0.5"
             placeholder="e.g. 20"
-            hint="Across chest (inches)"
+            hint="Across chest (in)"
             {...register('chestWidth')}
             error={(errors as Record<string, { message?: string }>).chestWidth?.message}
           />
@@ -235,16 +237,25 @@ export function VariantForm({
             type="number"
             step="0.5"
             placeholder="e.g. 28"
-            hint="Top to hem (inches)"
+            hint="Top to hem (in)"
             {...register('bodyLength')}
             error={(errors as Record<string, { message?: string }>).bodyLength?.message}
+          />
+          <Input
+            label="Shoulder Length"
+            type="number"
+            step="0.5"
+            placeholder="e.g. 18"
+            hint="Shoulder width (in)"
+            {...register('shoulderWidth')}
+            error={(errors as Record<string, { message?: string }>).shoulderWidth?.message}
           />
           <Input
             label="Sleeve Length"
             type="number"
             step="0.5"
             placeholder="e.g. 9"
-            hint="Shoulder to cuff (inches)"
+            hint="Shoulder to cuff (in)"
             {...register('sleeveLength')}
             error={(errors as Record<string, { message?: string }>).sleeveLength?.message}
           />
