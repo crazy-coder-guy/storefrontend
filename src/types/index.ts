@@ -117,6 +117,10 @@ export interface Product {
   // Only present on the admin's single-product GET (`GET /products/:id`).
   // Deliberately omitted from the list endpoint (`GET /products`) for privacy.
   costPrice?: number | null
+  // Present on the admin's product list (`GET /products`) only — computed
+  // server-side from costPrice + pricing settings, never the raw cost
+  // itself. Null when the product has no cost price set at all.
+  marginAmount?: number | null
   badge: string | null
   status: ProductStatus
   gsm: number | null

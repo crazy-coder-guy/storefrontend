@@ -36,7 +36,7 @@ export function ProductTable({
       rowKey={(row) => row.id}
       data={products}
       isLoading={isLoading}
-      loadingRows={<SkeletonRows cols={9} />}
+      loadingRows={<SkeletonRows cols={10} />}
       isError={isError}
       errorContent={<ErrorState error={error} onRetry={onRetry} />}
       emptyContent={
@@ -99,6 +99,20 @@ export function ProductTable({
         },
         { header: 'Base Price', key: 'basePrice', render: (row) => formatCurrency(row.basePrice) },
         { header: 'MRP', key: 'mrp', render: (row) => formatCurrency(row.mrp) },
+        {
+          header: 'Margin',
+          key: 'marginAmount',
+          render: (row) =>
+            row.marginAmount != null ? (
+              <span className={row.marginAmount < 0 ? 'text-rose-600 dark:text-rose-400' : undefined}>
+                {formatCurrency(row.marginAmount)}
+              </span>
+            ) : (
+              <span className="text-black/30 dark:text-white/30" title="No cost price set">
+                —
+              </span>
+            ),
+        },
         { header: 'Status', key: 'status', render: (row) => <StatusBadge status={row.status} /> },
         {
           header: 'Actions',
