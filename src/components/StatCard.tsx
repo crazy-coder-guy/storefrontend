@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react'
 import { HugeiconsIcon } from '@hugeicons/react'
 import type { IconSvgElement } from '@hugeicons/react'
 
 interface StatCardProps {
   label: string
-  value: string | number
+  value: ReactNode
   icon: IconSvgElement
   hint?: string
 }
