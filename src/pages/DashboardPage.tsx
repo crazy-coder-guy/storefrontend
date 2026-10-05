@@ -5,6 +5,7 @@ import { StatCards } from '../features/dashboard/StatCards'
 import { LowStockTable } from '../features/dashboard/LowStockTable'
 import { ProfitabilityCards } from '../features/dashboard/ProfitabilityCards'
 import { ProfitabilityCharts } from '../features/dashboard/ProfitabilityCharts'
+import { CostBreakdownChart } from '../features/dashboard/CostBreakdownChart'
 import { useDashboardSummary } from '../features/dashboard/hooks/useDashboardSummary'
 import { useDashboardProfitability } from '../features/dashboard/hooks/useDashboardProfitability'
 
@@ -43,7 +44,10 @@ export function DashboardPage() {
             ) : profitability.isError || !profitability.data ? (
               <ErrorState error={profitability.error} onRetry={() => profitability.refetch()} />
             ) : (
-              <ProfitabilityCards data={profitability.data} />
+              <div className="flex flex-col gap-4">
+                <ProfitabilityCards data={profitability.data} />
+                <CostBreakdownChart data={profitability.data} />
+              </div>
             )}
           </section>
 

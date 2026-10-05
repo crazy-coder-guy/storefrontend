@@ -416,3 +416,33 @@ export interface ProfitabilityTimeseries {
   series: ProfitabilityDayPoint[]
 }
 
+export interface TopProduct {
+  productId: string
+  name: string
+  units: number
+  revenue: number
+}
+
+export interface TopProductsResponse {
+  days: number
+  products: TopProduct[]
+}
+
+export interface CategoryPerformance {
+  categoryId: string
+  name: string
+  revenue: number
+  grossProfit: number
+}
+
+export interface CategoryPerformanceResponse {
+  days: number
+  categories: CategoryPerformance[]
+}
+
+export interface OrderStatusBreakdown {
+  days: number
+  byStatus: { status: OrderStatus; count: number }[]
+  byPaymentStatus: { paymentStatus: PaymentStatus; count: number }[]
+}
+
