@@ -26,6 +26,12 @@ const schema = z.object({
     .refine((v) => !v || (!Number.isNaN(Number(v)) && Number(v) > 0), {
       message: 'Price must be greater than 0',
     }),
+  costPrice: z
+    .string()
+    .optional()
+    .refine((v) => !v || (!Number.isNaN(Number(v)) && Number(v) >= 0), {
+      message: 'Cost price must be 0 or more',
+    }),
   stockQuantity: z.coerce.number().int().min(0).default(0),
   // Garment measurements (inches, optional)
   chestWidth: z.coerce.number().nonnegative().optional().or(z.literal('')),
@@ -86,6 +92,7 @@ export function VariantForm({
       sizeId: initialValues?.sizeId ?? '',
       sku: initialValues?.sku ?? '',
       price: initialValues?.price != null ? String(initialValues.price) : '',
+      costPrice: initialValues?.costPrice != null ? String(initialValues.costPrice) : '',
       stockQuantity: initialValues?.stockQuantity ?? 0,
       chestWidth: initialValues?.chestWidth ?? '',
       bodyLength: initialValues?.bodyLength ?? '',
@@ -213,6 +220,15 @@ export function VariantForm({
           error={errors.stockQuantity?.message}
         />
       </div>
+
+      <Input
+        label="Cost Price override (₹)"
+        type="number"
+        step="0.01"
+        hint="Leave blank to use the product's cost price."
+        {...register('costPrice')}
+        error={errors.costPrice?.message}
+      />
 
       {/* Garment Measurements */}
       <div className="flex flex-col gap-1.5 rounded-xl border border-black/10 bg-gray-50 p-3.5 dark:border-white/10 dark:bg-white/5">

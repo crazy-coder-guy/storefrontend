@@ -114,6 +114,9 @@ export interface Product {
   productType: string
   basePrice: number
   mrp: number
+  // Only present on the admin's single-product GET (`GET /products/:id`).
+  // Deliberately omitted from the list endpoint (`GET /products`) for privacy.
+  costPrice?: number | null
   badge: string | null
   status: ProductStatus
   gsm: number | null
@@ -136,6 +139,7 @@ export interface ProductInput {
   productType: string
   basePrice: number
   mrp: number
+  costPrice?: number | null
   badge?: string | null
   status?: ProductStatus
   gsm?: number | null
@@ -174,6 +178,9 @@ export interface ProductVariant {
   sizeId: string
   sku: string
   price: number | null
+  // Optional override of the product's cost price. Falls back to the
+  // product's costPrice when null/absent.
+  costPrice?: number | null
   stockQuantity: number
   badge: string | null
   status: EntityStatus
@@ -193,6 +200,7 @@ export interface ProductVariantInput {
   sizeId: string
   sku?: string
   price?: number | null
+  costPrice?: number | null
   stockQuantity?: number
   badge?: string | null
   status?: EntityStatus
@@ -334,5 +342,61 @@ export interface TopSearchTerm {
   searchCount: number
   avgResults: number
   lastSearchedAt: string
+}
+
+export interface PricingSettings {
+  id: string
+  packagingCost: number
+  courierCost: number
+  paymentGatewayPercent: number
+  exchangeBuffer: number
+  miscCost: number
+  marketingCost: number
+  targetProfit: number
+  freeShippingThreshold: number
+  shippingCharge: number
+  updatedAt: string
+}
+
+export interface PricingSettingsInput {
+  packagingCost?: number
+  courierCost?: number
+  paymentGatewayPercent?: number
+  exchangeBuffer?: number
+  miscCost?: number
+  marketingCost?: number
+  targetProfit?: number
+  freeShippingThreshold?: number
+  shippingCharge?: number
+}
+
+export interface PricingRecommendation {
+  productCost: number
+  packagingCost: number
+  courierCost: number
+  exchangeBuffer: number
+  miscCost: number
+  marketingCost: number
+  fixedCost: number
+  targetProfit: number
+  paymentGatewayPercent: number
+  rawSellingPrice: number
+  recommendedSellingPrice: number
+}
+
+export interface DashboardProfitability {
+  orderCount: number
+  totalRevenue: number
+  totalProductCost: number
+  totalCourierCost: number
+  totalPackagingCost: number
+  totalPaymentGatewayFees: number
+  totalMarketingSpend: number
+  totalExchangeCost: number
+  totalMiscCost: number
+  netProfit: number
+  averageOrderValue: number
+  averageProfitPerOrder: number
+  averageProfitMargin: number
 }
 

@@ -5,6 +5,8 @@ function coerceVariant<T extends ProductVariant>(variant: T): T {
   return {
     ...variant,
     price: variant.price === null || variant.price === undefined ? null : Number(variant.price),
+    costPrice:
+      variant.costPrice === null || variant.costPrice === undefined ? variant.costPrice : Number(variant.costPrice),
   }
 }
 

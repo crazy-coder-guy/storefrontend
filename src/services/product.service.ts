@@ -16,6 +16,8 @@ function coerceProduct<T extends Product>(product: T): T {
     ...product,
     basePrice: Number(product.basePrice),
     mrp: Number(product.mrp),
+    costPrice:
+      product.costPrice === null || product.costPrice === undefined ? product.costPrice : Number(product.costPrice),
   }
 }
 

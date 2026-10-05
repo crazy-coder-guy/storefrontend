@@ -17,12 +17,14 @@ import { Input } from '../../components/Input'
 import { Textarea } from '../../components/Textarea'
 import { Select } from '../../components/Select'
 import { Button } from '../../components/Button'
-import { useCreateProduct } from './hooks/useProducts'
+import { useCreateProduct, useProduct } from './hooks/useProducts'
 import { useAllCategories } from '../categories/hooks/useAllCategories'
 import { formatCurrency } from '../../utils/formatCurrency'
 import { toast } from '../../lib/toast'
 import * as productService from '../../services/product.service'
 import { BADGE_OPTIONS } from '../../utils/constants'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { usePricingRecommendation } from '../pricing/hooks/usePricingSettings'
 import type { Product } from '../../types'
 
 const schema = z.object({
@@ -33,6 +35,11 @@ const schema = z.object({
   productType: z.string().min(1, 'Product type is required'),
   basePrice: z.coerce.number().positive('Base price must be greater than 0'),
   mrp: z.coerce.number().positive('MRP must be greater than 0'),
+  costPrice: z.coerce
+    .number()
+    .nonnegative('Cost price must be 0 or more')
+    .optional()
+    .or(z.literal('')),
   badge: z.string().max(50).optional(),
   status: z.enum(['ACTIVE', 'INACTIVE', 'DRAFT', 'LAUNCHING_SOON']),
   gsm: z
@@ -63,6 +70,10 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
   const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'specs'>('general')
 
   const isEditing = !!productToEdit
+  // The list endpoint deliberately omits costPrice for privacy, so when this modal is
+  // opened from a list-sourced `productToEdit` we re-fetch the single-product detail
+  // (which does include it) to avoid accidentally wiping an existing cost price on save.
+  const { data: fullProductToEdit } = useProduct(isEditing ? productToEdit?.id : undefined)
 
   const updateMutation = useMutation({
     mutationFn: (values: FormValues) =>
@@ -74,6 +85,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
         productType: values.productType,
         basePrice: values.basePrice,
         mrp: values.mrp,
+        costPrice: values.costPrice !== '' && values.costPrice != null ? Number(values.costPrice) : null,
         badge: values.badge || null,
         status: values.status,
         gsm: values.gsm ? Number(values.gsm) : undefined,
@@ -107,6 +119,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
       productType: '',
       basePrice: 0,
       mrp: 0,
+      costPrice: '',
       badge: '',
       status: 'DRAFT',
       gsm: '',
@@ -117,9 +130,12 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
     },
   })
 
+  const recommendMutation = usePricingRecommendation()
+
   useEffect(() => {
     if (open) {
       setActiveTab('general')
+      recommendMutation.reset()
       if (productToEdit) {
         reset({
           name: productToEdit.name ?? '',
@@ -129,6 +145,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: productToEdit.productType ?? '',
           basePrice: productToEdit.basePrice ?? 0,
           mrp: productToEdit.mrp ?? 0,
+          costPrice: productToEdit.costPrice != null ? productToEdit.costPrice : '',
           badge: productToEdit.badge ?? '',
           status: productToEdit.status ?? 'DRAFT',
           gsm: productToEdit.gsm != null ? String(productToEdit.gsm) : '',
@@ -146,6 +163,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: '',
           basePrice: 0,
           mrp: 0,
+          costPrice: '',
           badge: '',
           status: 'DRAFT',
           gsm: '',
@@ -156,11 +174,42 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
         })
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, productToEdit, reset])
+
+  // Once the authoritative single-product detail loads (it may arrive after the reset
+  // above, since it's a separate fetch), sync the real costPrice into the form.
+  useEffect(() => {
+    if (open && isEditing && fullProductToEdit) {
+      setValue('costPrice', fullProductToEdit.costPrice != null ? fullProductToEdit.costPrice : '')
+    }
+  }, [open, isEditing, fullProductToEdit, setValue])
 
   const watchedName = watch('name')
   const watchedBasePrice = Number(watch('basePrice')) || 0
   const watchedMrp = Number(watch('mrp')) || 0
+  const watchedCostPrice = watch('costPrice')
+  const costPriceNum =
+    watchedCostPrice !== '' && watchedCostPrice != null && !Number.isNaN(Number(watchedCostPrice))
+      ? Number(watchedCostPrice)
+      : 0
+  const debouncedCostPrice = useDebouncedValue(costPriceNum, 450)
+
+  useEffect(() => {
+    if (debouncedCostPrice > 0) {
+      recommendMutation.mutate(debouncedCostPrice)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedCostPrice])
+
+  const recommendation = debouncedCostPrice > 0 ? recommendMutation.data : undefined
+  const paymentGatewayFeeAtActualPrice = recommendation
+    ? (watchedBasePrice * recommendation.paymentGatewayPercent) / 100
+    : 0
+  const totalCostAtActualPrice = recommendation ? recommendation.fixedCost + paymentGatewayFeeAtActualPrice : 0
+  const expectedProfit = recommendation ? watchedBasePrice - totalCostAtActualPrice : 0
+  const profitMarginPercent =
+    recommendation && watchedBasePrice > 0 ? (expectedProfit / watchedBasePrice) * 100 : 0
 
   useEffect(() => {
     if (watchedName && !watch('slug') && !isEditing) {
@@ -190,6 +239,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
           productType: values.productType,
           basePrice: values.basePrice,
           mrp: values.mrp,
+          costPrice: values.costPrice !== '' && values.costPrice != null ? Number(values.costPrice) : null,
           badge: values.badge || null,
           status: values.status,
           gsm: values.gsm ? Number(values.gsm) : undefined,
@@ -217,7 +267,7 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
 
   const tabs = [
     { id: 'general', label: 'Basic Info', icon: PackageIcon, hasError: !!(errors.name || errors.productType) },
-    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.categoryId) },
+    { id: 'pricing', label: 'Pricing & Catalog', icon: Coins01Icon, hasError: !!(errors.basePrice || errors.mrp || errors.costPrice || errors.categoryId) },
     { id: 'specs', label: 'Specifications', icon: TShirtIcon, hasError: !!(errors.gsm || errors.fabric) },
   ] as const
 
@@ -307,6 +357,72 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
                   error={errors.mrp?.message}
                 />
               </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Input
+                  label="Cost Price (₹)"
+                  type="number"
+                  step="0.01"
+                  placeholder="e.g. 180"
+                  hint="What this product costs you to make/source. Used to calculate margins — never shown to customers."
+                  {...register('costPrice')}
+                  error={errors.costPrice?.message}
+                />
+              </div>
+
+              {costPriceNum > 0 && (
+                <div className="rounded-xl border border-black/10 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">
+                  <p className="mb-3 text-xs font-bold uppercase tracking-wide text-black/50 dark:text-white/50">
+                    Profitability Preview
+                  </p>
+                  {recommendMutation.isPending && !recommendMutation.data ? (
+                    <p className="text-xs text-black/50 dark:text-white/50">Calculating…</p>
+                  ) : recommendMutation.isError ? (
+                    <p className="text-xs text-black/40 dark:text-white/40">
+                      Couldn't calculate a recommendation right now — pricing settings may be unavailable.
+                    </p>
+                  ) : recommendation ? (
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <div>
+                        <p className="text-[11px] text-black/50 dark:text-white/50">Recommended Price</p>
+                        <p className="text-sm font-bold text-black dark:text-white">
+                          {formatCurrency(recommendation.recommendedSellingPrice)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-black/50 dark:text-white/50">Actual Selling Price</p>
+                        <p className="text-sm font-bold text-black dark:text-white">
+                          {watchedBasePrice > 0 ? formatCurrency(watchedBasePrice) : '—'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-black/50 dark:text-white/50">Expected Profit</p>
+                        <p
+                          className={`text-sm font-bold ${
+                            watchedBasePrice > 0 && expectedProfit < 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-black dark:text-white'
+                          }`}
+                        >
+                          {watchedBasePrice > 0 ? formatCurrency(expectedProfit) : '—'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-black/50 dark:text-white/50">Profit Margin</p>
+                        <p
+                          className={`text-sm font-bold ${
+                            watchedBasePrice > 0 && profitMarginPercent < 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-black dark:text-white'
+                          }`}
+                        >
+                          {watchedBasePrice > 0 ? `${profitMarginPercent.toFixed(1)}%` : '—'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <Select label="Category" {...register('categoryId')} error={errors.categoryId?.message}>

@@ -80,6 +80,7 @@ export function ProductDetailDrawer({ productId, onClose }: ProductDetailDrawerP
       sizeId: values.sizeId,
       sku: values.sku || undefined,
       price: values.price ? Number(values.price) : null,
+      costPrice: values.costPrice ? Number(values.costPrice) : null,
       stockQuantity: values.stockQuantity,
       chestWidth: values.chestWidth !== '' && values.chestWidth != null ? Number(values.chestWidth) : null,
       bodyLength: values.bodyLength !== '' && values.bodyLength != null ? Number(values.bodyLength) : null,
