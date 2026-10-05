@@ -385,9 +385,26 @@ export function ProductFormModal({ open, onClose, productToEdit }: ProductFormMo
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                       <div>
                         <p className="text-[11px] text-black/50 dark:text-white/50">Recommended Price</p>
-                        <p className="text-sm font-bold text-black dark:text-white">
-                          {formatCurrency(recommendation.recommendedSellingPrice)}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-black dark:text-white">
+                            {formatCurrency(recommendation.recommendedSellingPrice)}
+                          </p>
+                          {watchedBasePrice !== recommendation.recommendedSellingPrice && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setValue('basePrice', recommendation.recommendedSellingPrice, {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                })
+                              }
+                              className="rounded-full border border-black/15 px-2 py-0.5 text-[10px] font-bold text-black hover:bg-black hover:text-white transition-colors cursor-pointer dark:border-white/20 dark:text-white dark:hover:bg-white dark:hover:text-black"
+                              title="Copy this into Base Price"
+                            >
+                              Apply
+                            </button>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <p className="text-[11px] text-black/50 dark:text-white/50">Actual Selling Price</p>
