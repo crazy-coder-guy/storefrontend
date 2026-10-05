@@ -404,3 +404,15 @@ export interface DashboardProfitability {
   averageProfitMargin: number
 }
 
+export interface ProfitabilityDayPoint {
+  date: string
+  revenue: number
+  netProfit: number
+  orderCount: number
+}
+
+export interface ProfitabilityTimeseries {
+  days: number
+  series: ProfitabilityDayPoint[]
+}
+

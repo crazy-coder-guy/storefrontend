@@ -4,6 +4,7 @@ import { ErrorState } from '../components/ErrorState'
 import { StatCards } from '../features/dashboard/StatCards'
 import { LowStockTable } from '../features/dashboard/LowStockTable'
 import { ProfitabilityCards } from '../features/dashboard/ProfitabilityCards'
+import { ProfitabilityCharts } from '../features/dashboard/ProfitabilityCharts'
 import { useDashboardSummary } from '../features/dashboard/hooks/useDashboardSummary'
 import { useDashboardProfitability } from '../features/dashboard/hooks/useDashboardProfitability'
 
@@ -44,6 +45,10 @@ export function DashboardPage() {
             ) : (
               <ProfitabilityCards data={profitability.data} />
             )}
+          </section>
+
+          <section>
+            <ProfitabilityCharts />
           </section>
 
           <section>
